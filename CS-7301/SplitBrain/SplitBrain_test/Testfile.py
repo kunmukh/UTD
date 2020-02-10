@@ -84,16 +84,14 @@ def main():
     feature_vec_test_inlier = np.asarray(feature_vec_test)[feature_vec_test_inlier_indices]
     feature_vec_test_outlier = np.asarray(feature_vec_test)[feature_vec_test_outlier_indices]
 
-    #Plot the TSNE
-    # plt.subplot(122)
+    #Plot using TSNE
+    plt.subplot(122)
     plt.xlabel("T-SNE")
     tsne = TSNE(n_components=2, perplexity=40, n_iter=300)
 
-    # Training feature vector
+    # plotting Training feature vector using TSNE
     tsne_results_train = tsne.fit_transform(feature_vec_train)
     plt.scatter(tsne_results_train[:, 0], tsne_results_train[:, 1], c='black')
-    # for i, word in enumerate(words):
-    # plt.annotate(word, xy=(tsne_results[i, 0], tsne_results[i, 1]))
 
     # in-lier feature vector
     tsne_results_test = tsne.fit_transform(feature_vec_test_inlier)
@@ -103,6 +101,25 @@ def main():
     if (len(feature_vec_test_outlier) > 2):
         tsne_results_test = tsne.fit_transform(feature_vec_test_outlier)
         plt.scatter(tsne_results_test[:, 0], tsne_results_test[:, 1], c='red')
+
+    # Plot using PCA
+    plt.subplot(121)
+    plt.xlabel("PCA")
+    pca = PCA(n_components=2)
+
+    # plotting Training feature vector using PCA
+    result = pca.fit_transform(feature_vec_train)
+    # create a scatter plot of the projection
+    plt.scatter(result[:, 0], result[:, 1], c='black')
+
+    # in-lier feature vector
+    result = pca.fit_transform(feature_vec_test_inlier)
+    plt.scatter(result[:, 0], result[:, 1], c='blue')
+
+    # out-lier feature vector
+    if (len(feature_vec_test_outlier) > 2):
+        result = pca.fit_transform(feature_vec_test_outlier)
+        plt.scatter(result[:, 0], result[:, 1], c='red')
 
     plt.show()
     
