@@ -15,11 +15,18 @@ from sklearn.neighbors import LocalOutlierFactor
 import smart_open
 import gensim
 import numpy as np
+import pandas as pd
+import pprint
 
 
 # Set file names for train and test data
-lee_train_file = 'data/lee_train.txt'
-lee_test_file = 'data/lee_test.txt'
+#lee_train_file = 'data/lee_train.txt'
+#lee_test_file = 'data/lee_test.txt'
+
+lee_train_file = 'data/adult_train.txt'
+lee_test_file = 'data/adult_test.txt'
+# lee_test_file = 'data/bad_test.txt'
+# lee_test_file = 'data/child_test.txt'
 
 
 def read_corpus(fname, tokens_only=False):
@@ -38,6 +45,7 @@ def main():
     test_corpus = list(read_corpus(lee_test_file, tokens_only=True))
 
     model = gensim.models.doc2vec.Doc2Vec(min_count=2, epochs=40)
+    # print(pd.DataFrame(data=train_corpus))
     model.build_vocab(train_corpus)
 
     # summarize the loaded model
@@ -55,7 +63,8 @@ def main():
 
     # get the feature vector from the training data set
     feature_vec_train = model[model.wv.vocab]
-    # print(" Feat Train Vec: ", feature_vec_train)
+    # pprint.pprint(model.wv.vocab)
+    # print(" Feature Training Vector: \n", pd.DataFrame(data=feature_vec_train))
 
     # Shape of the training corpus feature vectors
     print("Vec", feature_vec_train.shape)
@@ -68,14 +77,17 @@ def main():
         feature_vec_test.extend([model.infer_vector(corpus)])
 
     # print(feature_vec_test)
-    print("Test Vec", np.asarray(feature_vec_test).shape)
+    print(" Feature Test Vector: \n", pd.DataFrame(data=feature_vec_test))
+    # print("Test Vec", np.asarray(feature_vec_test).shape)
 
     # Novelty detection with Local Outlier Factor (LOF)
-    lof = LocalOutlierFactor(n_neighbors=100, contamination=0.1, novelty=True)
+    lof = LocalOutlierFactor(n_neighbors=40, contamination=0.1, novelty=True)
     lof.fit(feature_vec_train)
 
     # Novelty detecting on the feature vector of the testing corpus
     y_pred_test = lof.predict(feature_vec_test)
+
+    print(pd.DataFrame(data=y_pred_test))
 
     # get the inlier and the outlier
     feature_vec_test_inlier_indices = y_pred_test > 0
@@ -84,10 +96,14 @@ def main():
     feature_vec_test_inlier = np.asarray(feature_vec_test)[feature_vec_test_inlier_indices]
     feature_vec_test_outlier = np.asarray(feature_vec_test)[feature_vec_test_outlier_indices]
 
+    print("Inlier or Outlier:")
+    print("% of Inlier :", len(feature_vec_test_inlier) / len(y_pred_test))
+    print("% of Outlier:", len(feature_vec_test_outlier) / len(y_pred_test))
+
     #Plot using TSNE
     plt.subplot(122)
     plt.xlabel("T-SNE")
-    tsne = TSNE(n_components=2, perplexity=40, n_iter=300)
+    tsne = TSNE(n_components=2, perplexity=50, n_iter=300)
 
     # plotting Training feature vector using TSNE
     tsne_results_train = tsne.fit_transform(feature_vec_train)
