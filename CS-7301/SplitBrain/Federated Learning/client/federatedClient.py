@@ -17,6 +17,7 @@ host_addr = 'localhost'
 host_port = 10000
 server_sni_hostname = 'fedserver.com'
 # server certificate
+# openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout client.key -out client.crt
 server_cert = 'server.crt'
 # client certificate and key
 client_cert = 'client.crt'

@@ -16,6 +16,7 @@ import os
 listen_addr = 'localhost'
 listen_port = 10000
 # server certificate and key
+# openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout server.key -out server.crt
 server_cert = 'server.crt'
 server_key = 'server.key'
 # client certificate
