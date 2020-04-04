@@ -15,11 +15,7 @@ import smart_open
 from functools import reduce
 
 from utils import dateFormat
-
-# dict of model files
-dictModelFName = dict({'encoder': "models/model_seqs2.h5",
-                       'doc2vec': "models/doc2vecModel.pickle",
-                       'doc2vecUpdated': "models/doc2vecModelUpdated.pickle"})
+from utils import globalConst
 
 
 # function to create a taggedDocument or tokenzie a Document
@@ -73,7 +69,7 @@ def DoctoVecFeatureInfer(doc2vecmodel, test_corpus):
 # predict the in-lier and out-lier
 def prediction(doc2vecmodel, test_corpus, feature_vec_train):
     # PREDICTION STEP
-    autoencoder = load_model(dictModelFName['encoder'])
+    autoencoder = load_model(globalConst.dictModelFName['encoder'])
 
     # Testing the model
     feature_vec_test = DoctoVecFeatureInfer(doc2vecmodel, test_corpus)
@@ -149,7 +145,7 @@ def plotTSNE(feature_vec_train, feature_vec_inlier, feature_vec_outlier):
 # test doc2vec model
 def testdoc2vecModel(modelName, testFileName):
 
-    doc2vecModel = gensim.models.Doc2Vec.load(dictModelFName[modelName])
+    doc2vecModel = gensim.models.Doc2Vec.load(globalConst.dictModelFName[modelName])
     # get the test corpus
     test_corpus = dataProcessing(testFileName, 'test')
     # get the feature vector
@@ -176,7 +172,7 @@ def createDoctoVecModel(train_corpus):
     # train the model
     model.train(train_corpus, total_examples=model.corpus_count, epochs=model.epochs)
     # save the doc2vecModel
-    model.save(dictModelFName['doc2vec'])
+    model.save(globalConst.dictModelFName['doc2vec'])
 
     return model
 
@@ -190,7 +186,7 @@ def updateDoctoVecModelClient(trainCorpus, doc2vecfName):
     # train the model
     model.train(trainCorpus, total_examples=model.corpus_count, epochs=model.epochs)
     # save the doc2vecModel
-    model.save(dictModelFName['doc2vecUpdated'])
+    model.save(globalConst.dictModelFName['doc2vecUpdated'])
 
 
 # update the doc2vec model that returns the aligned/intersected models
@@ -202,8 +198,8 @@ def updateDoctoVecModelClient(trainCorpus, doc2vecfName):
 # <https://github.com/williamleif/histwords> by William Hamilton <wleif@stanford.edu>
 def updateDoctoVecModelServer(currentDoc2VecName, latestDoc2VecName, words=None):
     # upload the models
-    currDoc2Vec = gensim.models.Doc2Vec.load(dictModelFName[currentDoc2VecName])
-    latestDoc2Vec = gensim.models.Doc2Vec.load(dictModelFName[latestDoc2VecName])
+    currDoc2Vec = gensim.models.Doc2Vec.load(globalConst.dictModelFName[currentDoc2VecName])
+    latestDoc2Vec = gensim.models.Doc2Vec.load(globalConst.dictModelFName[latestDoc2VecName])
 
     # models = currentDoc2Vec and latestDoc2Vec model
     models = [currDoc2Vec, latestDoc2Vec]
@@ -253,4 +249,4 @@ def updateDoctoVecModelServer(currentDoc2VecName, latestDoc2VecName, words=None)
     currDoc2Vec.wv.vocab = new_vocab
 
     # save the doc2vecModel
-    currDoc2Vec.save(dictModelFName['doc2vec'])
+    currDoc2Vec.save(globalConst.dictModelFName['doc2vec'])

@@ -17,12 +17,7 @@ from matplotlib import pyplot as plt
 
 from utils import dateFormat
 from utils import doc2vecTools
-
-
-# dict of model files
-dictModelFName = dict({'encoder': "models/model_seqs2.h5",
-                       'doc2vec': "models/doc2vecModel.pickle",
-                       'doc2vecUpdated': "models/doc2vecModelUpdated.pickle"})
+from utils import globalConst
 
 
 # create the auto-encoder
@@ -63,7 +58,7 @@ def autoEncoder(feature_vec_train):
                         loss='mean_squared_error',
                         metrics=['accuracy'])
 
-    checkpointer = ModelCheckpoint(filepath=dictModelFName['encoder'],
+    checkpointer = ModelCheckpoint(filepath=globalConst.dictModelFName['encoder'],
                                    verbose=0,
                                    save_best_only=True)
 
@@ -95,7 +90,7 @@ def autoEncoder(feature_vec_train):
 def createEncoderModel(train_file):
 
     # try to load the doc2vec model
-    if os.path.isfile(dictModelFName['doc2vec']):
+    if os.path.isfile(globalConst.dictModelFName['doc2vec']):
         pass
     else:
         # get the training and testing data
@@ -103,7 +98,7 @@ def createEncoderModel(train_file):
         # generate the doc2vec model and get the feature for the training
         doc2vecModel = doc2vecTools.createDoctoVecModel(train_corpus)
 
-        if os.path.isfile(dictModelFName['encoder']):
+        if os.path.isfile(globalConst.dictModelFName['encoder']):
             pass
         else:
             # get the feature vector
@@ -119,7 +114,7 @@ def createEncoderModel(train_file):
 # update the encoder model based on the provided doc2vec model
 def updateEncoderModel(doc2vecName):
     try:
-        doc2vecModel = gensim.models.Doc2Vec.load(dictModelFName[doc2vecName])
+        doc2vecModel = gensim.models.Doc2Vec.load(globalConst.dictModelFName[doc2vecName])
 
         # use the updated doc2vec to create the new encoder
         # get the feature vector

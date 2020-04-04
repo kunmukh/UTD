@@ -15,23 +15,7 @@ from utils import dateFormat
 from utils import network
 from utils import doc2vecTools
 from utils import encoderTools
-
-# Global constants
-# the server listen addr and port
-listen_addr = 'localhost'
-listen_port = 10000
-# server certificate and key
-# openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout server.key -out server.crt
-server_cert = 'certificates/server.crt'
-server_key = 'certificates/server.key'
-# client certificate
-client_certs = 'certificates/client.crt'
-# size of byte
-byte_size = 1024
-# dict of model files
-dictModelFName = dict({'encoder': "models/model_seqs2.h5",
-                       'doc2vec': "models/doc2vecModel.pickle",
-                       'doc2vecUpdated': "models/doc2vecModelUpdated.pickle"})
+from utils import globalConst
 
 # TODO: remove them and get real dataset
 # training and testing dataset
@@ -46,8 +30,8 @@ def initializeSocket(ip_addr, port):
     # create the ssl context
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     context.verify_mode = ssl.CERT_REQUIRED
-    context.load_cert_chain(certfile=server_cert, keyfile=server_key)
-    context.load_verify_locations(cafile=client_certs)
+    context.load_cert_chain(certfile=globalConst.server_cert, keyfile=globalConst.server_key)
+    context.load_verify_locations(cafile=globalConst.client_certs)
 
     # create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -68,7 +52,7 @@ def main():
     encoderTools.createEncoderModel(lee_train_file)
 
     # initialize a socket with ip and port
-    sock, sslContext = initializeSocket(listen_addr, listen_port)
+    sock, sslContext = initializeSocket(globalConst.listen_addr, globalConst.listen_port)
 
     while True:
         # Wait for a connection
@@ -85,7 +69,7 @@ def main():
 
                 # Receive the data and check if it is the first initial message or not
                 while True:
-                    data = connection.recv(byte_size)
+                    data = connection.recv(globalConst.byte_size)
                     print(sys.stderr, 'received "%s"' % data)
 
                     if data:

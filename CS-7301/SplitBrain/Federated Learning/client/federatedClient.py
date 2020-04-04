@@ -15,26 +15,8 @@ import ssl
 from utils import dateFormat
 from utils import network
 from utils import doc2vecTools
+from utils import globalConst
 
-# Global constants
-# Server information
-host_addr = 'localhost'
-host_port = 10000
-server_sni_hostname = 'fedserver.com'
-# server certificate
-# openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout client.key -out client.crt
-server_cert = 'certificates/server.crt'
-# client certificate and key
-client_cert = 'certificates/client.crt'
-client_key = 'certificates/client.key'
-# size of byte
-byte_size = 1024
-# receive 4096 bytes each time
-SEPARATOR = "<SEPARATOR>"
-# dict of model files
-dictModelFName = dict({'encoder': "models/model_seqs2.h5",
-                       'doc2vec': "models/doc2vecModel.pickle",
-                       'doc2vecUpdated': "models/doc2vecModelUpdated.pickle"})
 # number of models
 models = ['encoder', 'doc2vec']
 
@@ -48,14 +30,14 @@ lee_test_file = '../../data/lee_test.txt'
 # return the connection socket
 def initializeConnection(server_ip, server_port):
     # Load the ssl context
-    context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=server_cert)
-    context.load_cert_chain(certfile=client_cert, keyfile=client_key)
+    context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=globalConst.server_cert)
+    context.load_cert_chain(certfile=globalConst.client_cert, keyfile=globalConst.client_key)
 
     # Create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # ssl context wrap
-    connection = context.wrap_socket(sock, server_side=False, server_hostname=server_sni_hostname)
+    connection = context.wrap_socket(sock, server_side=False, server_hostname=globalConst.server_sni_hostname)
 
     # Connect the socket to the port where the server is listening
     server_address = (server_ip, server_port)
@@ -77,7 +59,7 @@ def getInitialModels():
     # get the initial models: encoder and doc2vec
     for model in models:
         # create the connection the the server
-        sock, connection = initializeConnection(host_addr, host_port)
+        sock, connection = initializeConnection(globalConst.host_addr, globalConst.host_port)
 
         try:
             # Send the request to get encoder and doc2vec model
@@ -97,7 +79,7 @@ def getInitialModels():
 def senddoc2vecUpdatedModel():
     # send the updated doc2vec model
     # create the connection the the server
-    sock, connection = initializeConnection(host_addr, host_port)
+    sock, connection = initializeConnection(globalConst.host_addr, globalConst.host_port)
 
     try:
         # Send the request to get encoder and doc2vec model
@@ -123,8 +105,7 @@ def main():
     # TODO: create the updated doc2vec model
     # the new training file
     doc2vecTools.updateDoctoVecModelClient(doc2vecTools.dataProcessing(lee_test_file, 'train'),
-                                           dictModelFName['doc2vec'])
-
+                                           globalConst.dictModelFName['doc2vec'])
 
     # send the updated doc2vec model
     senddoc2vecUpdatedModel()
