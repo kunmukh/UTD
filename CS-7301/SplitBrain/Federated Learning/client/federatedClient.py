@@ -70,7 +70,7 @@ def initializeConnection(server_ip, server_port):
         print("SSL Handshake Failed")
         sock.close()
         exit()
-# --------------------------------------------------
+
 
 # get the initial encoder and doc2vec model
 def getInitialModels():
@@ -111,7 +111,6 @@ def senddoc2vecUpdatedModel():
     finally:
         print(sys.stderr, 'closing socket')
         sock.close()
-# --------------------------------------------------
 
 
 def main():
