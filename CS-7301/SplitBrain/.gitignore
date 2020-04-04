@@ -1,8 +1,9 @@
 data/
-.DS_Store
-.idea
+*.DS_Store
+*.idea
 *.xml
 *.iml
 *.data
 *.dat
 *.txt
+*.pyc

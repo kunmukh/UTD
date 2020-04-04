@@ -9,17 +9,7 @@
 import socket
 import sys
 import ssl
-import pickle
-import os
-import tqdm
-from sklearn.manifold import TSNE
-from matplotlib import pyplot as plt
-import smart_open
-import gensim
-import numpy as np
-import pandas as pd
-from keras.models import Model, load_model
-import datetime
+
 
 # utilities
 from utils import dateFormat
@@ -50,8 +40,8 @@ models = ['encoder', 'doc2vec']
 
 # TODO: remove them and get real dataset
 # training and testing dataset
-lee_train_file = '../../data/adult_train.txt'
-lee_test_file = '../../data/adult_test.txt'
+lee_train_file = '../../data/lee_train.txt'
+lee_test_file = '../../data/lee_test.txt'
 
 
 # initialize the connection with the server
@@ -135,6 +125,7 @@ def main():
     # the new training file
     doc2vecTools.updateDoctoVecModelClient(doc2vecTools.dataProcessing(lee_test_file, 'train'),
                                            dictModelFName['doc2vec'])
+
 
     # send the updated doc2vec model
     senddoc2vecUpdatedModel()

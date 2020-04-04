@@ -9,26 +9,6 @@
 import socket
 import sys
 import ssl
-import datetime
-
-import smart_open
-import gensim
-import pickle
-import os
-import tqdm
-from sklearn.model_selection import train_test_split
-from keras.layers import Input, Dense
-from keras.callbacks import ModelCheckpoint, TensorBoard
-from keras import regularizers
-from keras.models import Model, load_model
-from matplotlib import pyplot as plt
-import matplotlib
-import numpy as np
-import pandas as pd
-import pprint
-from sklearn.manifold import TSNE
-# importing functools for reduce()
-from functools import reduce
 
 # utilities
 from utils import dateFormat
@@ -55,8 +35,8 @@ dictModelFName = dict({'encoder': "models/model_seqs2.h5",
 
 # TODO: remove them and get real dataset
 # training and testing dataset
-lee_train_file = '../../data/adult_train.txt'
-lee_test_file = '../../data/adult_test.txt'
+lee_train_file = '../../data/lee_train.txt'
+lee_test_file = '../../data/lee_test.txt'
 
 
 # initialize a socket with ip and port
@@ -84,10 +64,6 @@ def initializeSocket(ip_addr, port):
 
 
 def main():
-    '''updateDoctoVecModel('doc2vec', 'doc2vecUpdated')
-    # test the model
-    testdoc2vecModel('doc2vec', lee_test_file)
-    exit()'''
     # create the encoder model
     encoderTools.createEncoderModel(lee_train_file)
 
