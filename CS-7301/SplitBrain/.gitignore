@@ -1,6 +1,4 @@
 data/
-Federated Learning/server/models
-Federated Learning/client/models
 .DS_Store
 .idea
 *.xml
