@@ -103,7 +103,7 @@ def main():
                             # TODO: Update the doc2vec model
                             doc2vecTools.updateDoctoVecModelServer('doc2vec', 'doc2vecUpdated')
                             # test the model
-                            doc2vecTools.testdoc2vecModel('doc2vecUpdated', lee_test_file)
+                            doc2vecTools.testdoc2vecModel('doc2vec', lee_test_file)
 
                             # update the encoder model with the Updated doc2vec model
                             encoderTools.updateEncoderModel('doc2vecUpdated')

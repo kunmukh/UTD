@@ -56,7 +56,7 @@ def DoctoVecFeatureInfer(doc2vecmodel, test_corpus):
     for i, corpus in enumerate(test_corpus):
         feature_vec_test = np.append(feature_vec_test, [doc2vecmodel.infer_vector(corpus)], axis=0)
 
-    print(" Feature Test Vector: \n", pd.DataFrame(data=feature_vec_test).head())
+    # print(" Feature Test Vector: \n", pd.DataFrame(data=feature_vec_test).head())
     # print("Test Vec", np.asarray(feature_vec_test).shape)
 
     # normalize it
@@ -67,9 +67,12 @@ def DoctoVecFeatureInfer(doc2vecmodel, test_corpus):
 
 
 # predict the in-lier and out-lier
-def prediction(doc2vecmodel, test_corpus, feature_vec_train):
+def prediction(doc2vecmodel, test_corpus, feature_vec_train, encoderModel=None):
     # PREDICTION STEP
-    autoencoder = load_model(globalConst.dictModelFName['encoder'])
+    if encoderModel is not None:
+        autoencoder = encoderModel
+    else:
+        autoencoder = load_model(globalConst.dictModelFName['encoder'])
 
     # Testing the model
     feature_vec_test = DoctoVecFeatureInfer(doc2vecmodel, test_corpus)
@@ -143,22 +146,35 @@ def plotTSNE(feature_vec_train, feature_vec_inlier, feature_vec_outlier):
 
 
 # test doc2vec model
-def testdoc2vecModel(modelName, testFileName):
+def testdoc2vecModel(modelName, testFileName,
+                     model=False, modelNameExplicite=None, encoderModel=None):
 
-    doc2vecModel = gensim.models.Doc2Vec.load(globalConst.dictModelFName[modelName])
+    if model:
+        doc2vecModel = modelName
+    else:
+        doc2vecModel = gensim.models.Doc2Vec.load(globalConst.dictModelFName[modelName])
     # get the test corpus
     test_corpus = dataProcessing(testFileName, 'test')
     # get the feature vector
     feature_vec = doc2vecModel[doc2vecModel.wv.vocab]
     # get the prediction of the inlier and outlier from the test_corpus
-    updated_feature_vec, pred = prediction(doc2vecModel, test_corpus, feature_vec)
+    if encoderModel is not None:
+        updated_feature_vec, pred = prediction(doc2vecModel, test_corpus, feature_vec, encoderModel)
+    else:
+        updated_feature_vec, pred = prediction(doc2vecModel, test_corpus, feature_vec)
+
     # get the meanSqError from the feature_vec_test, predicition_vec, feature_vec_train
     feature_vec_inlier, feature_vec_outlier = meanSqError(updated_feature_vec, pred)
     # plot the TSNE
     plotTSNE(feature_vec, feature_vec_inlier, feature_vec_outlier)
 
     # save the accuracy plot
-    plt.savefig('img/TSNEPlot_' + dateFormat.getDate(str(datetime.datetime.now().date())) + '.png', dpi=100)
+    if model:
+        plt.savefig('img/TSNEPlot_' + dateFormat.getDate(str(datetime.datetime.now().date())) + modelNameExplicite
+                    + '.png', dpi=100)
+    else:
+        plt.savefig('img/TSNEPlot_' + dateFormat.getDate(str(datetime.datetime.now().date())) + modelName +'.png',
+                    dpi=100)
     plt.clf()
 
 
@@ -233,7 +249,6 @@ def updateDoctoVecModelServer(currentDoc2VecName, latestDoc2VecName, words=None)
     # old_arr = np.linalg.norm(currDoc2Vec.wv.vectors, axis=1)
 
     print(old_arr)
-
     new_arr = np.array([old_arr[index] for index in indices])
     # m.wv.vectors_norm = m.wv.syn0 = new_arr
     currDoc2Vec.wv.vectors = currDoc2Vec.wv.syn0 = new_arr
@@ -247,6 +262,7 @@ def updateDoctoVecModelServer(currentDoc2VecName, latestDoc2VecName, words=None)
         old_vocab_obj = old_vocab[word]
         new_vocab[word] = gensim.models.word2vec.Vocab(index=new_index, count=old_vocab_obj.count)
     currDoc2Vec.wv.vocab = new_vocab
+    currDoc2Vec.syn0_lockf = np.zeros(np.shape(currDoc2Vec.syn0_lockf))
 
     # save the doc2vecModel
     currDoc2Vec.save(globalConst.dictModelFName['doc2vec'])
