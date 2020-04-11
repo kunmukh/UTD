@@ -58,7 +58,7 @@ def autoEncoder(feature_vec_train):
                         loss='mean_squared_error',
                         metrics=['accuracy'])
 
-    checkpointer = ModelCheckpoint(filepath=globalConst.dictModelFName['encoder'],
+    checkpointer = ModelCheckpoint(filepath=globalConst.dictFName['encoder'],
                                    verbose=0,
                                    save_best_only=True)
 
@@ -87,22 +87,28 @@ def autoEncoder(feature_vec_train):
 
 
 # check for the dependencies for the encoder model
-def createEncoderModel(train_file):
+def createEncoderModel(train_data_file_path):
 
     # try to load the doc2vec model
-    if os.path.isfile(globalConst.dictModelFName['doc2vec']):
+    if os.path.isfile(globalConst.dictFName['doc2vec']):
         pass
     else:
         # get the training and testing data
-        train_corpus = doc2vecTools.dataProcessing(train_file, 'train')
-        # generate the doc2vec model and get the feature for the training
-        doc2vecModel = doc2vecTools.createDoctoVecModel(train_corpus)
+        # train_corpus = doc2vecTools.dataProcessing(train_data_file_path, 'train')
+        train_corpus = doc2vecTools.dataProcessingCSV(train_data_file_path)
 
-        if os.path.isfile(globalConst.dictModelFName['encoder']):
+        # generate the doc2vec model and get the feature for the training
+        # doc2vecModel = doc2vecTools.createDoctoVecModel(train_corpus)
+        doc2vec_tr = doc2vecTools.Doc2VecTransformer()
+        doc2vec_tr.fit(train_corpus)
+
+        if os.path.isfile(globalConst.dictFName['encoder']):
             pass
         else:
             # get the feature vector
-            feature_vec_train = doc2vecModel[doc2vecModel.wv.vocab]
+            # feature_vec_train = doc2vecModel[doc2vecModel.wv.vocab]
+            feature_vec_train = doc2vec_tr.transform(train_corpus)
+
             # encode the feature of the training document
             autoEncoder(feature_vec_train)
 
@@ -112,13 +118,22 @@ def createEncoderModel(train_file):
 
 
 # update the encoder model based on the provided doc2vec model
-def updateEncoderModel(doc2vecName):
+def updateEncoderModel(doc2vecName, train_data_file_path):
     try:
-        doc2vecModel = gensim.models.Doc2Vec.load(globalConst.dictModelFName[doc2vecName])
+        '''doc2vecModel = gensim.models.Doc2Vec.load(globalConst.dictFName[doc2vecName])
 
         # use the updated doc2vec to create the new encoder
         # get the feature vector
         feature_vec_train = doc2vecModel[doc2vecModel.wv.vocab]
+        # encode the feature of the training document
+        autoEncoder(feature_vec_train)'''
+
+        # update the encoder model with the training data
+        train_corpus = doc2vecTools.dataProcessingCSV(train_data_file_path)
+        doc2vec_tr = doc2vecTools.Doc2VecTransformer(
+            model=gensim.models.Doc2Vec.load(globalConst.dictFName[doc2vecName]))
+        feature_vec_train = doc2vec_tr.transform(train_corpus)
+
         # encode the feature of the training document
         autoEncoder(feature_vec_train)
 

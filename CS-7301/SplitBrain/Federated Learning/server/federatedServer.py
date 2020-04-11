@@ -17,11 +17,6 @@ from utils import doc2vecTools
 from utils import encoderTools
 from utils import globalConst
 
-# TODO: remove them and get real dataset
-# training and testing dataset
-lee_train_file = '../../data/lee_train.txt'
-lee_test_file = '../../data/lee_test.txt'
-
 
 # initialize a socket with ip and port
 # return a ssl context and the socket
@@ -49,7 +44,7 @@ def initializeSocket(ip_addr, port):
 
 def main():
     # create the encoder model
-    encoderTools.createEncoderModel(lee_train_file)
+    encoderTools.createEncoderModel(globalConst.dictFName['doc2vecData'])
 
     # initialize a socket with ip and port
     sock, sslContext = initializeSocket(globalConst.listen_addr, globalConst.listen_port)
@@ -96,17 +91,28 @@ def main():
                             print(sys.stderr, 'receiving doc2vec model from the client')
 
                             # receive the file
-                            network.fileReception(connection)
+                            network.fileReception(connection, True)
 
                             print(sys.stderr, 'Reception complete. Closing connection to:', client_address)
 
                             # TODO: Update the doc2vec model
-                            doc2vecTools.updateDoctoVecModelServer('doc2vec', 'doc2vecUpdated')
+                            # doc2vecTools.updateDoctoVecModelServer('doc2vec', 'doc2vecUpdated')
+
+                            '''doc2vecTools.updateDoctoVecModelServer(globalConst.dictFName['doc2vec'],
+                                                                   doc2vecTools.dataProcessing(
+                                                                       globalConst.dictFName['doc2vecUpdatedData'],
+                                                                       'train'))'''
+                            doc2vecTools.updateDoctoVecModelServer(
+                                doc2vecTools.dataProcessingCSV(globalConst.dictFName['doc2vecUpdatedData']),
+                                globalConst.dictFName['doc2vec'])
+
                             # test the model
-                            doc2vecTools.testdoc2vecModel('doc2vec', lee_test_file)
+                            '''doc2vecTools.testdoc2vecModel('doc2vecUpdated',
+                                                          globalConst.dictFName['doc2vecUpdatedData'])'''
+                            doc2vecTools.testdoc2vecModel('doc2vecUpdated', globalConst.dictFName['doc2vecUpdatedData'])
 
                             # update the encoder model with the Updated doc2vec model
-                            encoderTools.updateEncoderModel('doc2vecUpdated')
+                            encoderTools.updateEncoderModel('doc2vecUpdated', globalConst.dictFName['doc2vecData'])
                             break
 
                     else:

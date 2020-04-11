@@ -6,11 +6,8 @@
 
 import os
 import tqdm
+from utils import globalConst
 
-# dict of model files
-dictModelFName = dict({'encoder': "models/model_seqs2.h5",
-                       'doc2vec': "models/doc2vecModel.pickle",
-                       'doc2vecUpdated': "models/doc2vecModelUpdated.pickle"})
 
 # size of byte
 byte_size = 1024
@@ -19,7 +16,7 @@ byte_size = 1024
 # transfer the file given the connection
 def fileTransfer(modelName, socket):
     # get the model file name
-    fileName = dictModelFName[modelName]
+    fileName = globalConst.dictFName[modelName]
     fileSize = os.path.getsize(fileName)
 
     SEPARATOR = "<SEPARATOR>"
@@ -44,7 +41,7 @@ def fileTransfer(modelName, socket):
 
 
 # file reception protocol
-def fileReception(connection):
+def fileReception(connection, data=False):
     SEPARATOR = "<SEPARATOR>"
     while True:
         # receive the file infos
@@ -58,7 +55,10 @@ def fileReception(connection):
         filename, filesize = received.split(SEPARATOR)
 
         # remove absolute path if there is
-        filename = 'models/' + os.path.basename(filename)
+        if not data:
+            filename = 'models/' + os.path.basename(filename)
+        else:
+            filename = 'data/' + os.path.basename(filename)
         # convert to integer
         filesize = int(filesize)
 

@@ -20,11 +20,6 @@ from utils import globalConst
 # number of models
 models = ['encoder', 'doc2vec']
 
-# TODO: remove them and get real dataset
-# training and testing dataset
-lee_train_file = '../../data/lee_train.txt'
-lee_test_file = '../../data/lee_test.txt'
-
 
 # initialize the connection with the server
 # return the connection socket
@@ -75,7 +70,7 @@ def getInitialModels():
             sock.close()
 
 
-# send the updated doc2vec model
+'''# send the updated doc2vec model
 def senddoc2vecUpdatedModel():
     # send the updated doc2vec model
     # create the connection the the server
@@ -92,6 +87,26 @@ def senddoc2vecUpdatedModel():
 
     finally:
         print(sys.stderr, 'closing socket')
+        sock.close()'''
+
+
+# send the updated doc2vec model
+def senddoc2vecUpdatedModelData():
+    # send the updated doc2vec model
+    # create the connection the the server
+    sock, connection = initializeConnection(globalConst.host_addr, globalConst.host_port)
+
+    try:
+        # Send the request to get encoder and doc2vec model
+        message = 'Connection Sending doc2vec model data'
+        print(sys.stderr, 'sending "%s"' % message)
+        connection.sendall(message.encode('UTF-8'))
+
+        # receive the file
+        network.fileTransfer('doc2vecUpdatedData', connection)
+
+    finally:
+        print(sys.stderr, 'closing socket')
         sock.close()
 
 
@@ -100,15 +115,23 @@ def main():
     getInitialModels()
 
     # do the prediction from the model data
-    doc2vecTools.testdoc2vecModel('doc2vec', lee_test_file)
+    doc2vecTools.testdoc2vecModel('doc2vec', globalConst.dictFName['doc2vecUpdatedData'])
 
     # TODO: create the updated doc2vec model
-    # the new training file
-    doc2vecTools.updateDoctoVecModelClient(doc2vecTools.dataProcessing(lee_test_file, 'train'),
-                                           globalConst.dictModelFName['doc2vec'])
+    '''# the new training file
+    doc2vecTools.updateDoctoVecModelClient(
+        doc2vecTools.dataProcessing(globalConst.dictFName['doc2vecUpdatedData'], 'train'),
+        globalConst.dictFName['doc2vec'])'''
 
-    # send the updated doc2vec model
-    senddoc2vecUpdatedModel()
+    doc2vecTools.updateDoctoVecModelClient(
+        doc2vecTools.dataProcessingCSV(globalConst.dictFName['doc2vecUpdatedData']),
+        globalConst.dictFName['doc2vec'])
+
+    '''# send the updated doc2vec model
+    senddoc2vecUpdatedModel()'''
+
+    # send the new doc2vec model data
+    senddoc2vecUpdatedModelData()
 
 
 if __name__ == '__main__':
