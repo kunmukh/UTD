@@ -21,6 +21,7 @@ from itertools import islice
 from sklearn.base import BaseEstimator
 from sklearn import utils as skl_utils
 from tqdm import tqdm
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 
 from utils import dateFormat
@@ -82,7 +83,7 @@ def dataProcessingCSV(filePath):
     # load the csv file
     data_df = pd.read_csv(filePath, index_col=False, header=0)
     # select the only required columns
-    dataHeader = ['Title', 'Plot']
+    dataHeader = ['Rating', 'Plot']
     processed_df = data_df[dataHeader]
     # process the data on those columns
     processed_df['Plot'] = processed_df['Plot'].map(lambda x: clean_text(x))
@@ -202,7 +203,7 @@ def meanSqError (feature_vec, predicted_vec):
 
     # getting the threshold
     # TODO: test threshold hyper parameters org:0.9997
-    mse_threshold = np.quantile(seqs_ds['MSE'], 0.9997)
+    mse_threshold = np.quantile(seqs_ds['MSE'], 0.9900)
     print('\n' + f'MSE 0.9997 threshold:{mse_threshold}' + '\n')
 
     # updating the MSE Outlier
@@ -210,7 +211,7 @@ def meanSqError (feature_vec, predicted_vec):
     seqs_ds.loc[seqs_ds['MSE'] > mse_threshold, 'MSE_Outlier'] = 1
 
     # print(seqs_ds)
-    print(seqs_ds.loc[seqs_ds['MSE_Outlier'] == 1])
+    # print(seqs_ds.loc[seqs_ds['MSE_Outlier'] == 1])
 
     print('\n' + f"Num of MSE outlier:{seqs_ds['MSE_Outlier'].sum()}" + '\n')
 
@@ -220,15 +221,16 @@ def meanSqError (feature_vec, predicted_vec):
     feature_vec_inlier = np.asarray(feature_vec)[feature_vec_inlier_indices]
     feature_vec_outlier = np.asarray(feature_vec)[feature_vec_outlier_indices]
 
-    print("Inlier or Outlier:")
+    '''print("Inlier or Outlier:")
     print("% of Inlier :", len(feature_vec_inlier) / len(seqs_ds['MSE_Outlier']))
-    print("% of Outlier:", len(feature_vec_outlier) / len(seqs_ds['MSE_Outlier']))
+    print("% of Outlier:", len(feature_vec_outlier) / len(seqs_ds['MSE_Outlier']))'''
 
     feature_vec_inlier_ind = np.asarray(seqs_ds.loc[seqs_ds['MSE_Outlier'] == 0, 'Doc #'])
     feature_vec_outlier_ind = np.asarray(seqs_ds.loc[seqs_ds['MSE_Outlier'] == 1, 'Doc #'])
 
     '''return feature_vec_inlier, feature_vec_outlier'''
-    return feature_vec_inlier, feature_vec_inlier_ind, feature_vec_outlier, feature_vec_outlier_ind
+    return feature_vec_inlier, feature_vec_inlier_ind, \
+           feature_vec_outlier, feature_vec_outlier_ind
 
 
 # plot the TSNE plot
@@ -286,10 +288,19 @@ def testdoc2vecModel(modelName, testFilePath,
     feature_vec_inlier, feature_vec_inlier_ind, feature_vec_outlier, feature_vec_outlier_ind =\
         meanSqError(updated_feature_vec, pred)
 
-    # find the common words
+    print(test_corpus.iloc[feature_vec_outlier_ind])
+    neg_pred_y = np.asarray(test_corpus.iloc[feature_vec_outlier_ind].loc[:, 'Rating'])
+    y_test = np.zeros(shape=(1, len(feature_vec_outlier_ind))).tolist()[0]
+    print('Accuracy for outlier: ', accuracy_score(y_test, neg_pred_y))
+
+    pos_pred_y = np.asarray(test_corpus.iloc[feature_vec_inlier_ind].loc[:, 'Rating'])
+    y_test = np.ones(shape=(1, len(feature_vec_inlier_ind))).tolist()[0]
+    print('Accuracy for inlier: ', accuracy_score(y_test, pos_pred_y))
+
+    '''# find the common words
     find_intersected_words(test_corpus, feature_vec_outlier_ind, True, True)
     # find the uncommon words
-    find_intersected_words(test_corpus, feature_vec_outlier_ind, False, True)
+    find_intersected_words(test_corpus, feature_vec_outlier_ind, False, True)'''
 
     '''# plot the TSNE
     plotTSNE(feature_vec_test, feature_vec_inlier, feature_vec_outlier)
@@ -469,7 +480,7 @@ def updateDoctoVecModelServer(currentDoc2VecName, latestDoc2VecName, words=None)
 class Doc2VecTransformer(BaseEstimator):
 
     # TODO: play with the hyperparameters
-    def __init__(self, vector_size=100, learning_rate=0.02, epochs=10, model=None): # epochs = 20
+    def __init__(self, vector_size=100, learning_rate=0.02, epochs=20, model=None): # epochs = 20
         self.learning_rate = learning_rate
         self.epochs = epochs
         self._model = model

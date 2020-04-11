@@ -42,9 +42,88 @@ def initializeSocket(ip_addr, port):
     return sock, context
 
 
+# TODO remove
+def dataMani():
+    import pandas as pd
+    from tensorflow import keras
+    import numpy as np
+
+    # save np.load
+    np_load_old = np.load
+
+    # modify the default parameters of np.load
+    np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
+
+    data = keras.datasets.imdb
+    # separate the data into training and testing data set
+    (train_data, train_labels), (test_data, test_labels) = data.load_data(num_words=88000)
+    # restore np.load for future normal usage
+    np.load = np_load_old
+
+    print(train_data[0])
+    print(train_labels[0])
+
+    index = data.get_word_index()
+    reverse_index = dict([(value, key) for (key, value) in index.items()])
+    decoded = " ".join([reverse_index.get(i - 3, "#") for i in train_data[0]])
+    print(decoded)
+
+    data = []
+    data_label = []
+
+    for count, d in enumerate(train_data):
+        data.append(" ".join([reverse_index.get(i - 3, "#") for i in d]))
+        data_label.append(train_labels[count])
+
+    my_dict = {'Rating': data_label,
+               'Plot': data}
+
+    df = pd.DataFrame(my_dict)
+
+    print(df)
+
+    df.to_csv('data/train.csv')
+
+    pos_df = df.loc[df['Rating'] == 1]
+    neg_df = df.loc[df['Rating'] == 0]
+
+    print(pos_df)
+    print(neg_df)
+
+    pos_df.to_csv('data/train_pos.csv')
+    neg_df.to_csv('data/train_neg.csv')
+
+    data = []
+    data_label = []
+
+    for count, d in enumerate(test_data):
+        data.append(" ".join([reverse_index.get(i - 3, "#") for i in d]))
+        data_label.append(test_labels[count])
+
+    my_dict = {'Rating': data_label,
+               'Plot': data}
+
+    df2 = pd.DataFrame(my_dict)
+
+    print(df2)
+
+    df2.to_csv('data/test.csv')
+
+    pos_df2 = df2.loc[df['Rating'] == 1]
+    neg_df2 = df2.loc[df['Rating'] == 0]
+
+    print(pos_df2)
+    print(neg_df2)
+
+    pos_df2.to_csv('data/test_pos.csv')
+    neg_df2.to_csv('data/test_neg.csv')
+
+    exit()
+
+
 def main():
     # create the encoder model
-    encoderTools.createEncoderModel(globalConst.dictFName['doc2vecData'])
+    encoderTools.createEncoderModel(globalConst.dictFName['doc2vecPosData'])
 
     # initialize a socket with ip and port
     sock, sslContext = initializeSocket(globalConst.listen_addr, globalConst.listen_port)
@@ -109,10 +188,12 @@ def main():
                             # test the model
                             '''doc2vecTools.testdoc2vecModel('doc2vecUpdated',
                                                           globalConst.dictFName['doc2vecUpdatedData'])'''
-                            doc2vecTools.testdoc2vecModel('doc2vecUpdated', globalConst.dictFName['doc2vecUpdatedData'])
+                            doc2vecTools.testdoc2vecModel('doc2vecUpdated',
+                                                          globalConst.dictFName['doc2vecUpdatedData'])
 
                             # update the encoder model with the Updated doc2vec model
-                            encoderTools.updateEncoderModel('doc2vecUpdated', globalConst.dictFName['doc2vecData'])
+                            encoderTools.updateEncoderModel('doc2vecUpdated',
+                                                            globalConst.dictFName['doc2vecPosData'])
                             break
 
                     else:

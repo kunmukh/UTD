@@ -32,14 +32,9 @@ SEPARATOR = "<SEPARATOR>"
 # size of byte
 byte_size = 1024
 # dict of model files
-dictFName = dict({'encoder': "models/model_seqs2.h5",
+dictFName = dict({  'encoder': "models/model_seqs2.h5",
                     'doc2vec': "models/doc2vecModel.pickle",
                     'doc2vecUpdated': "models/doc2vecModelUpdated.pickle",
-                    'doc2vecUpdatedData': "data/server_train.csv",
-                    'doc2vecData': "data/server_train.csv"})
-
-
-
-
-
-
+                    'doc2vecUpdatedData': "data/train.csv",
+                    'doc2vecUpdatedPosData': "data/test_pos.csv",
+                    'doc2vecPosData': "data/train_pos.csv"})

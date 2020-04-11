@@ -124,7 +124,7 @@ def main():
         globalConst.dictFName['doc2vec'])'''
 
     doc2vecTools.updateDoctoVecModelClient(
-        doc2vecTools.dataProcessingCSV(globalConst.dictFName['doc2vecUpdatedData']),
+        doc2vecTools.dataProcessingCSV(globalConst.dictFName['doc2vecUpdatedPosData']),
         globalConst.dictFName['doc2vec'])
 
     '''# send the updated doc2vec model
