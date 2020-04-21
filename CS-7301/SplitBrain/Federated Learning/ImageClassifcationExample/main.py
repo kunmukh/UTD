@@ -82,7 +82,55 @@ def model_fn():
         loss=tf.keras.losses.SparseCategoricalCrossentropy(),
         metrics=[tf.keras.metrics.SparseCategoricalAccuracy()])
 
+
 def main():
+    global preprocessed_example_dataset
+
+    initializeFunctions()
+
+    testFedTF()
+
+    # interface that allows you to enumerate the set of users
+    emnist_train, emnist_test = tff.simulation.datasets.emnist.load_data()
+
+    # look at the client id
+    example_dataset = emnist_train.create_tf_dataset_for_client(
+        emnist_train.client_ids[0])
+
+    # pre-process the dataset
+    preprocessed_example_dataset = preprocess(example_dataset)
+
+    # get the number of samples
+    sample_clients = emnist_train.client_ids[0:NUM_CLIENTS]
+    # get the train data set
+    federated_train_data = make_federated_data(emnist_train, sample_clients)
+
+    iterative_process = tff.learning.build_federated_averaging_process(
+        model_fn,
+        client_optimizer_fn=lambda: tf.keras.optimizers.SGD(learning_rate=0.02),
+        server_optimizer_fn=lambda: tf.keras.optimizers.SGD(learning_rate=1.0))
+
+    # print('\nsignature', str(iterative_process.initialize.type_signature))
+
+    state = iterative_process.initialize()
+    print('\nstate', state)
+
+    NUM_ROUNDS = 11
+    for round_num in range(NUM_ROUNDS):
+        state, metrics = iterative_process.next(state, federated_train_data)
+        print('round {:2d}, metrics={}'.format(round_num, metrics))
+
+    evaluation = tff.learning.build_federated_evaluation(model_fn)
+    train_metrics = evaluation(state.model, federated_train_data)
+    print('\nTrain ', str(train_metrics))
+
+    federated_test_data = make_federated_data(emnist_test, sample_clients)
+    test_metrics = evaluation(state.model, federated_test_data)
+    print('\nTest ', str(test_metrics))
+
+
+
+def mainTemp():
     global preprocessed_example_dataset
     initializeFunctions()
 
@@ -160,7 +208,7 @@ def main():
                 tf.summary.scalar(name, value, step=round_num)
     # terminal "tensorboard --logdir /tmp/logs/scalars/ --port=0"'''
 
-    
+
 
 if __name__ == '__main__':
     main()
