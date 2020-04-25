@@ -3,7 +3,6 @@
 # Encoder for analogous image detection
 
 from keras.datasets import mnist, fashion_mnist
-
 from keras.layers import Input, Dense
 import numpy as np
 from keras import regularizers
@@ -12,11 +11,9 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import (confusion_matrix, precision_recall_curve, auc,
                              roc_curve, recall_score, classification_report, f1_score,
                              precision_recall_fscore_support)
-
-
-
 import pandas as pd
 
+SAMPLES = 100
 
 def getData():
     # prepare normal dataset (Mnist)
@@ -34,6 +31,7 @@ def getData():
     x_abnormal = x_abnormal.reshape(-1, 28 * 28)
 
     return x_train, x_test, x_abnormal
+
 
 # https://github.com/otenim/AnomalyDetectionUsingAutoencoder
 def getAutoencoderModel(X_train, x_test):
@@ -67,6 +65,7 @@ def getAutoencoderModel(X_train, x_test):
 
     return autoencoder
 
+
 # https://www.linkedin.com/pulse/anomaly-detection-autoencoder-neural-network-applied-urls-daboubi/
 def showloss(x_test, x_abnormal, model):
     # test
@@ -79,8 +78,8 @@ def showloss(x_test, x_abnormal, model):
         losses.append(loss[0])
 
     # plot
-    plt.plot(range(len(losses[:100])), losses[:100], linestyle='-', linewidth=1, label="normal image", color='blue')
-    plt.plot(range(100, len(losses)), losses[100:], linestyle='-', linewidth=1, label="anomaly image", color='red')
+    plt.plot(range(len(losses[:SAMPLES])), losses[:SAMPLES], linestyle='-', linewidth=1, label="normal image", color='blue')
+    plt.plot(range(SAMPLES, len(losses)), losses[SAMPLES:], linestyle='-', linewidth=1, label="anomaly image", color='red')
 
     # create graph
     plt.legend(loc='best')
@@ -89,17 +88,16 @@ def showloss(x_test, x_abnormal, model):
     plt.ylabel("Reconstruction error")
     plt.xlabel("Data point index")
 
-
-    #plt.savefig(args.result)
-    #plt.clf()
+    # plt.savefig(args.result)
+    # plt.clf()
 
 
 def getThreashold(autoencoder, X_test, y_test, want_accuracy, want_recall):
 
     predictions = autoencoder.predict(X_test)
     mse = np.mean(np.power(X_test - predictions, 2), axis=1)
-    error_df = pd.DataFrame(list(zip(list(mse.values.reshape(1, 200)[0]),
-                                     list(y_test.values.reshape(1, 200)[0]))),
+    error_df = pd.DataFrame(list(zip(list(mse.values.reshape(1, SAMPLES + SAMPLES)[0]),
+                                     list(y_test.values.reshape(1, SAMPLES + SAMPLES)[0]))),
                             columns=['reconstruction_error', 'true_class'])
     print(error_df)
     fraud_error_df = error_df[error_df['true_class'] == 1]
@@ -109,7 +107,8 @@ def getThreashold(autoencoder, X_test, y_test, want_accuracy, want_recall):
     f1 = 0
     recall = 0
     accuracy = 0
-    while (recall < want_recall or accuracy < want_accuracy):
+
+    while recall < want_recall or accuracy < want_accuracy:
         print('**************************')
         print('threshold', threshold)
         threshold += .0005
@@ -150,27 +149,25 @@ def main():
 
     model = load_model('model.h5')
 
-    showloss(x_test[:100], x_abnormal[:100], model)
+    showloss(x_test[:SAMPLES], x_abnormal[:SAMPLES], model)
 
-    X_test = pd.DataFrame(np.concatenate([x_test[:100], x_abnormal[:100]], axis=0))
-    Y_test = pd.DataFrame([0 for _ in range(100)] + [1 for _ in range(100)])
+    X_test = pd.DataFrame(np.concatenate([x_test[:SAMPLES], x_abnormal[:SAMPLES]], axis=0))
+    Y_test = pd.DataFrame([0 for _ in range(SAMPLES)] + [1 for _ in range(SAMPLES)])
 
     # define the accuracy and recall
     want_accuracy, want_recall = 0.8, 0.5
     getThreashold(model, X_test, Y_test, want_accuracy, want_recall)
 
     # shuffle the data
-    x = X_test.values
-    y = Y_test.values
-    data = np.hstack((x, y))
+    data = np.hstack((X_test.values, Y_test.values))
     np.random.shuffle(data)
     data = pd.DataFrame(data)
     X_test = data.iloc[:, :-1]
     Y_test = data.iloc[:, -1]
 
-    threashold = getThreashold(model, X_test, Y_test, want_accuracy, want_recall)
+    threshold = getThreashold(model, X_test, Y_test, want_accuracy, want_recall)
 
-    print('\n\nThreshold', threashold)
+    print('\n\nThreshold', threshold)
 
     plt.show()
 
