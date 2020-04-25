@@ -79,14 +79,15 @@ def showloss(x_test, x_abnormal, model):
         losses.append(loss[0])
 
     # plot
-    plt.plot(range(len(losses[:100])), losses[:100], linestyle='-', linewidth=1, label="x_test", color='blue')
-    plt.plot(range(100, len(losses)), losses[100:], linestyle='-', linewidth=1, label="x_anomaly", color='red')
+    plt.plot(range(len(losses[:100])), losses[:100], linestyle='-', linewidth=1, label="normal image", color='blue')
+    plt.plot(range(100, len(losses)), losses[100:], linestyle='-', linewidth=1, label="anomaly image", color='red')
 
     # create graph
     plt.legend(loc='best')
     plt.grid()
-    plt.xlabel('sample index')
-    plt.ylabel('loss')
+    plt.title("Reconstruction error for different classes")
+    plt.ylabel("Reconstruction error")
+    plt.xlabel("Data point index")
 
 
     #plt.savefig(args.result)
@@ -110,7 +111,7 @@ def getThreashold(autoencoder, X_test, y_test, want_accuracy, want_recall):
     accuracy = 0
     while (recall < want_recall or accuracy < want_accuracy):
         print('**************************')
-        print(threshold)
+        print('threshold', threshold)
         threshold += .0005
         y_pred = [1 if e > threshold else 0 for e in error_df.reconstruction_error.values]
         conf_matrix = confusion_matrix(error_df.true_class, y_pred)
@@ -133,10 +134,10 @@ def getThreashold(autoencoder, X_test, y_test, want_accuracy, want_recall):
 
     for name, group in groups:
         ax.plot(group.index, group.reconstruction_error, marker='o', ms=2, linestyle='',
-                label="Malicious URL" if name == 1 else "Normal URL", color='red' if name == 1 else 'orange')
+                label="Abnormal image" if name == 1 else "Normal image", color='red' if name == 1 else 'orange')
     ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[1], colors="green", zorder=100, label='Threshold')
     ax.legend()
-    plt.title("Reconstruction error for different classes")
+    plt.title("Reconstruction error for different classes| Accuracy = 80%")
     plt.ylabel("Reconstruction error")
     plt.xlabel("Data point index")
 
@@ -151,9 +152,21 @@ def main():
 
     showloss(x_test[:100], x_abnormal[:100], model)
 
-    want_accuracy, want_recall = 0.8, 0.5
     X_test = pd.DataFrame(np.concatenate([x_test[:100], x_abnormal[:100]], axis=0))
     Y_test = pd.DataFrame([0 for _ in range(100)] + [1 for _ in range(100)])
+
+    # define the accuracy and recall
+    want_accuracy, want_recall = 0.8, 0.5
+    getThreashold(model, X_test, Y_test, want_accuracy, want_recall)
+
+    # shuffle the data
+    x = X_test.values
+    y = Y_test.values
+    data = np.hstack((x, y))
+    np.random.shuffle(data)
+    data = pd.DataFrame(data)
+    X_test = data.iloc[:, :-1]
+    Y_test = data.iloc[:, -1]
 
     threashold = getThreashold(model, X_test, Y_test, want_accuracy, want_recall)
 
