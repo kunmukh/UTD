@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import (confusion_matrix, precision_recall_curve, auc,
                              roc_curve, recall_score, classification_report, f1_score,
                              precision_recall_fscore_support)
+from PIL import Image
 import pandas as pd
 
 SAMPLES = 100
@@ -78,6 +79,8 @@ def showloss(x_test, x_abnormal, model):
         losses.append(loss[0])
 
     # plot
+    fig, ax = plt.subplots()
+
     plt.plot(range(len(losses[:SAMPLES])), losses[:SAMPLES], linestyle='-', linewidth=1, label="normal image", color='blue')
     plt.plot(range(SAMPLES, len(losses)), losses[SAMPLES:], linestyle='-', linewidth=1, label="anomaly image", color='red')
 
@@ -92,10 +95,103 @@ def showloss(x_test, x_abnormal, model):
     # plt.clf()
 
 
+def getThreasholdTrain(autoencoder, X, y_test):
+    predictions = autoencoder.predict(X)
+    mse = np.mean(np.power(X - predictions, 2), axis=1)
+
+    threshold = np.quantile(mse, 0.9900)
+
+    # showImage(X_test.values[101], predictions[101])
+    error_df = pd.DataFrame(list(zip(list(mse.values.reshape(1, SAMPLES)[0]),
+                                     list(y_test.values.reshape(1, SAMPLES)[0]))),
+                            columns=['reconstruction_error', 'true_class'])
+    y_pred = [1 if e > threshold else 0 for e in error_df.reconstruction_error.values]
+    conf_matrix = confusion_matrix(error_df.true_class, y_pred)
+    tn, fp, fn, tp = conf_matrix.ravel()
+    print('TP:' + str(tp))
+    print('FP:' + str(fp))
+    print('TN:' + str(tn))
+    print('FN:' + str(fn))
+    accuracy = 1. * (tp + tn) / (tp + tn + fp + fn)
+
+    groups = error_df.groupby('true_class')
+    fig, ax = plt.subplots()
+
+    for name, group in groups:
+        ax.plot(group.index, group.reconstruction_error, marker='o', ms=2, linestyle='',
+                label="Abnormal image" if name == 1 else "Normal image", color='red' if name == 1 else 'orange')
+    ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[1], colors="green",
+              zorder=100, label='Threshold=' + str(np.round(threshold, 3)))
+    ax.legend()
+    plt.title("Reconstruction error for different classes| Accuracy= " + str(accuracy))
+    plt.ylabel("Reconstruction error")
+    plt.xlabel("Data point index")
+
+    return threshold
+
+
+def showImage(x, pred_x):
+    X1 = np.asarray(x)
+    X1 = X1 * 255
+    X1 = X1.reshape(28, 28)
+    img = Image.fromarray(X1)
+    img.show()
+
+    pred1 = np.asarray(pred_x)
+    pred1 = pred1 * 255
+    pred1 = pred1.reshape(28, 28)
+    img = Image.fromarray(pred1)
+    img.show()
+
+
+def plotLoss(autoencoder, X_test, y_test, threshold):
+    predictions = autoencoder.predict(X_test)
+    mse = np.mean(np.power(X_test - predictions, 2), axis=1)
+
+    # showImage(X_test.values[101], predictions[101])
+    error_df = pd.DataFrame(list(zip(list(mse.values.reshape(1, SAMPLES + SAMPLES)[0]),
+                                     list(y_test.values.reshape(1, SAMPLES + SAMPLES)[0]))),
+                            columns=['reconstruction_error', 'true_class'])
+
+    print('**************************')
+    print('threshold', threshold)
+    threshold += .0005
+    y_pred = [1 if e > threshold else 0 for e in error_df.reconstruction_error.values]
+    conf_matrix = confusion_matrix(error_df.true_class, y_pred)
+    tn, fp, fn, tp = conf_matrix.ravel()
+    precision = 1. * tp / (tp + fp)
+    recall = 1. * tp / (tp + fn)
+    f1 = (2 * recall * precision) / (recall + precision)
+    print('TP:' + str(tp))
+    print('FP:' + str(fp))
+    print('TN:' + str(tn))
+    print('FN:' + str(fn))
+    accuracy = 1. * (tp + tn) / (tp + tn + fp + fn)
+    print('Accuracy:' + str(accuracy))
+    print('Precision:' + str(precision))
+    print('Recall:' + str(recall))
+    print('F1:' + str(f1))
+
+    groups = error_df.groupby('true_class')
+    fig, ax = plt.subplots()
+
+    for name, group in groups:
+        ax.plot(group.index, group.reconstruction_error, marker='o', ms=2, linestyle='',
+                label="Abnormal image" if name == 1 else "Normal image", color='red' if name == 1 else 'orange')
+    ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[1], colors="green",
+              zorder=100, label='Threshold=' + str(np.round(threshold, 3)))
+    ax.legend()
+    plt.title("Reconstruction error for different classes| Accuracy= " + str(accuracy))
+    plt.ylabel("Reconstruction error")
+    plt.xlabel("Data point index")
+
+
 def getThreashold(autoencoder, X_test, y_test, want_accuracy, want_recall):
 
     predictions = autoencoder.predict(X_test)
     mse = np.mean(np.power(X_test - predictions, 2), axis=1)
+    # threshold = np.quantile(mse, 0.9900)
+
     error_df = pd.DataFrame(list(zip(list(mse.values.reshape(1, SAMPLES + SAMPLES)[0]),
                                      list(y_test.values.reshape(1, SAMPLES + SAMPLES)[0]))),
                             columns=['reconstruction_error', 'true_class'])
@@ -134,20 +230,25 @@ def getThreashold(autoencoder, X_test, y_test, want_accuracy, want_recall):
     for name, group in groups:
         ax.plot(group.index, group.reconstruction_error, marker='o', ms=2, linestyle='',
                 label="Abnormal image" if name == 1 else "Normal image", color='red' if name == 1 else 'orange')
-    ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[1], colors="green", zorder=100, label='Threshold')
+    ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[1], colors="green",
+              zorder=100, label='Threshold='+str(np.round(threshold,3)))
     ax.legend()
-    plt.title("Reconstruction error for different classes| Accuracy = 80%")
+    plt.title("Reconstruction error for different classes| Accuracy= " + str(accuracy))
     plt.ylabel("Reconstruction error")
     plt.xlabel("Data point index")
 
     return threshold
 
+
 def main():
+
     X_train, x_test, x_abnormal = getData()
 
     # model = getAutoencoderModel(X_train, x_test[:500])
 
     model = load_model('model.h5')
+
+    threshold = getThreasholdTrain(model, pd.DataFrame(X_train[:SAMPLES]), pd.DataFrame([0 for _ in range(SAMPLES)]))
 
     showloss(x_test[:SAMPLES], x_abnormal[:SAMPLES], model)
 
@@ -155,17 +256,19 @@ def main():
     Y_test = pd.DataFrame([0 for _ in range(SAMPLES)] + [1 for _ in range(SAMPLES)])
 
     # define the accuracy and recall
-    want_accuracy, want_recall = 0.8, 0.5
-    getThreashold(model, X_test, Y_test, want_accuracy, want_recall)
+    want_accuracy, want_recall = 0.90, 0.5
+    # getThreashold(model, X_test, Y_test, want_accuracy, want_recall)
 
-    # shuffle the data
+    '''# shuffle the data
     data = np.hstack((X_test.values, Y_test.values))
     np.random.shuffle(data)
     data = pd.DataFrame(data)
     X_test = data.iloc[:, :-1]
-    Y_test = data.iloc[:, -1]
+    Y_test = data.iloc[:, -1]'''
 
-    threshold = getThreashold(model, X_test, Y_test, want_accuracy, want_recall)
+    # threshold = getThreashold(model, X_test, Y_test, want_accuracy, want_recall)
+
+    plotLoss(model, X_test, Y_test, threshold)
 
     print('\n\nThreshold', threshold)
 

@@ -139,7 +139,7 @@ tensorboard = TensorBoard(log_dir='./logs',
                           write_graph=True,
                           write_images=True)
 
-history = autoencoder.fit(X_train, X_train,
+'''history = autoencoder.fit(X_train, X_train,
                           epochs=nb_epoch,
                           batch_size=batch_size,
                           shuffle=True,
@@ -153,12 +153,12 @@ plt.plot(history['val_loss'])
 plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
-plt.legend(['train', 'test'], loc='upper right')
+plt.legend(['train', 'test'], loc='upper right')'''
 # plt.show()
 
 # predicting step
 autoencoder = load_model('model_seqs2.h5')
-print('\n' + f'Min Loss:{np.min(history["loss"])}' + '\n')
+# print('\n' + f'Min Loss:{np.min(history["loss"])}' + '\n')
 
 # PREDICT ON ALL THE SEQUENCE DATA
 
@@ -184,7 +184,7 @@ seqs_ds['MSE'] = mse
 print(seqs_ds)
 
 # getting the threshold
-mse_threshold = np.quantile(seqs_ds['MSE'], 0.9997)
+mse_threshold = np.quantile(seqs_ds['MSE'], 0.9999)
 print('\n' + f'MSE 0.9997 threshold:{mse_threshold}' + '\n')
 
 # getting the sequence
