@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+
 # Kunal Mukherjee
 # 5/13/20
 # Encoder for analogous image detection with Federated Learning

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+
 # Kunal Mukherjee
 # 4/24/20
 # Encoder for analogous image detection
