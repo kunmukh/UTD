@@ -9,16 +9,20 @@ import random
 import cv2
 import os
 from imutils import paths
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
+from sklearn.metrics import accuracy_score
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import Flatten
 from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import SGD
 from tensorflow.keras import backend as K
-
-from keras.models import load_model
-from utils import fed_implementation_utils as fu
-from sklearn.metrics import confusion_matrix
 
 # global variable
 img_path = '../../data/MINSTtrainingSet'
@@ -47,7 +51,7 @@ def load(paths, verbose=-1):
 
 
 # create client dataset
-def create_clients(image_list, num_clients=10, initial='clients'):
+def create_clients(image_list, label_list, num_clients=10, initial='clients'):
     ''' return: a dictionary with keys clients' names and value as
                 data shards - tuple of images and label lists.
         args:
@@ -62,7 +66,7 @@ def create_clients(image_list, num_clients=10, initial='clients'):
     client_names = ['{}_{}'.format(initial, i + 1) for i in range(num_clients)]
 
     # randomize the data
-    data = image_list
+    data = list(zip(image_list, label_list))
     random.shuffle(data)
 
     # shard data and place at each client
@@ -79,15 +83,16 @@ def create_clients(image_list, num_clients=10, initial='clients'):
 def batch_data(data_shard, bs=32):
     '''Takes in a clients data shard and create a tfds object off it
     args:
-        shard: a data constituting a client's data shard
+        shard: a data, label constituting a client's data shard
         bs:batch size
     return:
         tfds object'''
 
     # seperate shard into data and labels lists
-    dataset = tf.data.Dataset.from_tensor_slices((list(data_shard), list(data_shard)))
+    data, label = zip(*data_shard)
+    dataset = tf.data.Dataset.from_tensor_slices((list(data), list(label)))
 
-    return dataset.shuffle(len(list(data_shard))).batch(bs)
+    return dataset.shuffle(len(label)).batch(bs)
 
 
 # simple 3 layer perceptron
@@ -99,13 +104,13 @@ class SimpleMLP:
 
         model = Sequential()
         model.add(Dense(hidden_dim, input_shape=(shape,)))
-        model.add(Activation("tanh"))
+        model.add(Activation("relu"))
         model.add(Dense(hidden_dim))
         model.add(Activation("relu"))
         model.add(Dense(hidden_dim))
         model.add(Activation("relu"))
         model.add(Dense(classes))
-        model.add(Activation("tanh"))
+        model.add(Activation("softmax"))
         return model
 
 
@@ -146,6 +151,17 @@ def sum_scaled_weights(scaled_weight_list):
     return avg_grad
 
 
+# print out the testing statistics
+def test_model(X_test, Y_test, model, comm_round):
+    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    # logits = model.predict(X_test, batch_size=100)
+    logits = model.predict(X_test)
+    loss = cce(Y_test, logits)
+    acc = accuracy_score(tf.argmax(logits, axis=1), tf.argmax(Y_test, axis=1))
+    print('comm_round: {} | global_acc: {:.3%} | global_loss: {}'.format(comm_round, acc, loss))
+    return acc, loss
+
+
 def main():
 
     # get the path list using the path object
@@ -153,32 +169,48 @@ def main():
 
     # apply our function
     image_list, label_list = load(image_paths, verbose=10000)
-
     # print(pd.DataFrame(label_list[0:10]))
 
-    # create clients
-    clients = create_clients(image_list, num_clients=10, initial='client')
+    # binarize the labels
+    lb = LabelBinarizer()
+    label_list = lb.fit_transform(label_list)
+    # print(pd.DataFrame(label_list[0:10]))
 
-    x_test = image_list[0:len(image_list):400]
+    # split data into training and test set
+    X_train, X_test, y_train, y_test = train_test_split(image_list,
+                                                        label_list,
+                                                        test_size=0.1,
+                                                        random_state=42)
+
+    # create clients
+    clients = create_clients(X_train, y_train, num_clients=10, initial='client')
 
     # process and batch the training data for each client
     clients_batched = dict()
     for (client_name, data) in clients.items():
         clients_batched[client_name] = batch_data(data)
 
+    # process and batch the test set
+    test_batched = tf.data.Dataset.from_tensor_slices((X_test, y_test)).batch(len(y_test))
+
     # local constants
     # the number global epochs (aggregations)
-    comms_round = 10
+    comms_round = 50
 
     # create optimizer constants
-    loss = 'mean_squared_error'
+    lr = 0.01
+    loss = 'categorical_crossentropy'
     metrics = ['accuracy']
-    optimizer = 'adam'
+    optimizer = SGD(lr=lr,
+                    decay=lr / comms_round,
+                    momentum=0.9
+                    )
+
 
     # FEDERATED MODEL TRAINING
     # initialize global model
     smlp_global = SimpleMLP()
-    global_model = smlp_global.build(len(image_list[0]), len(image_list[0]))
+    global_model = smlp_global.build(784, 10)
 
     # commence global training loop
     for comm_round in range(comms_round):
@@ -196,7 +228,7 @@ def main():
         # loop through each client and create new local model
         for client in client_names:
             smlp_local = SimpleMLP()
-            local_model = smlp_local.build(len(image_list[0]), len(image_list[0]))
+            local_model = smlp_local.build(784, 10)
             local_model.compile(loss=loss,
                                 optimizer=optimizer,
                                 metrics=metrics)
@@ -204,10 +236,8 @@ def main():
             # set local model weight to the weight of the global model
             local_model.set_weights(global_weights)
 
-            # fit local model with client's data #  validation_data=(x_test, x_test),np.asarray(X)
-            x_val = tf.data.Dataset.from_tensor_slices((list(x_test), list(x_test))).batch(len(list(x_test)))
-            print('Current Training', client)
-            local_model.fit(clients_batched[client], validation_data=x_val, epochs=5, verbose=1)
+            # fit local model with client's data
+            local_model.fit(clients_batched[client], epochs=1, verbose=0)
 
             # scale the model weights and add to list
             scaling_factor = weight_scalling_factor(clients_batched, client)
@@ -223,12 +253,9 @@ def main():
         # update global model
         global_model.set_weights(average_weights)
 
-        print(comm_round, "Done")
-
-    # save the auto encoder
-    global_model.save("model.h5")
-
-    fu.driver(global_model)
+        # test global model and print out metrics after each communications round
+        for (X_test, Y_test) in test_batched:
+            global_acc, global_loss = test_model(X_test, Y_test, global_model, comm_round)
 
 
 if __name__ == '__main__':
