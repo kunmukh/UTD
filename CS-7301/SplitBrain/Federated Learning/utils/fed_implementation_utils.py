@@ -82,7 +82,7 @@ def showloss(x_test, x_abnormal, model):
 
 
 # helper function to plot the mse of X and threshold for the data
-def plotLoss(autoencoder, X_test, y_test, threshold):
+def plotLoss(autoencoder, X_test, y_test, threshold, modelName):
     predictions = autoencoder.predict(X_test)
     mse = np.mean(np.power(X_test - predictions, 2), axis=1)
 
@@ -121,7 +121,7 @@ def plotLoss(autoencoder, X_test, y_test, threshold):
     ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[1], colors="green",
               zorder=100, label='Threshold=' + str(np.round(threshold, 3)))
     ax.legend()
-    plt.title("Federated Reconstruction error for different classes| Accuracy= " + str(accuracy))
+    plt.title(modelName + " Reconstruction error for different classes| Accuracy= " + str(accuracy))
     plt.ylabel("Reconstruction error")
     plt.xlabel("Data point index")
 
@@ -129,7 +129,7 @@ def plotLoss(autoencoder, X_test, y_test, threshold):
 # get the threshold corresponding to the 99th percentile
 # also print out info regarding the threshold
 # plot the threshold w.r.t to train data mse
-def getThreasholdTrain(autoencoder, X, y_test):
+def getThreasholdTrain(autoencoder, X, y_test, modelName):
     predictions = autoencoder.predict(X)
     mse = np.mean(np.power(X - predictions, 2), axis=1)
 
@@ -160,7 +160,7 @@ def getThreasholdTrain(autoencoder, X, y_test):
     ax.hlines(threshold, ax.get_xlim()[0], ax.get_xlim()[1], colors="green",
               zorder=100, label='Threshold=' + str(np.round(threshold, 3)))
     ax.legend()
-    plt.title("Federated Reconstruction error for different classes| Accuracy= " + str(accuracy))
+    plt.title(modelName + " Reconstruction error for different classes| Accuracy= " + str(accuracy))
     plt.ylabel("Reconstruction error")
     plt.xlabel("Data point index")
 
@@ -225,12 +225,15 @@ def getThreashold(autoencoder, X_test, y_test, want_accuracy, want_recall):
 
 
 # the driver function
-def driver(model):
+def driver(model, modelName):
 
     X_train, x_test, x_abnormal = getData()
 
     # get the 99th percentile of the train threshold
-    threshold = getThreasholdTrain(model, pd.DataFrame(X_train[:SAMPLES]), pd.DataFrame([0 for _ in range(SAMPLES)]))
+    threshold = getThreasholdTrain(model,
+                                   pd.DataFrame(X_train[:SAMPLES]),
+                                   pd.DataFrame([0 for _ in range(SAMPLES)]),
+                                   modelName)
 
     # plot the loss for given samples
     # showloss(x_test[:SAMPLES], x_abnormal[:SAMPLES], model)
@@ -240,15 +243,15 @@ def driver(model):
     Y_test = pd.DataFrame([0 for _ in range(SAMPLES)] + [1 for _ in range(SAMPLES)])
 
     # uncomment to shuffle the data
-    # shuffle the data
+    '''# shuffle the data
     data = np.hstack((X_test.values, Y_test.values))
     np.random.shuffle(data)
     data = pd.DataFrame(data)
     X_test = data.iloc[:, :-1]
-    Y_test = data.iloc[:, -1]
+    Y_test = data.iloc[:, -1]'''
 
     # plot the mse of X and threshold for the data
-    plotLoss(model, X_test, Y_test, threshold)
+    plotLoss(model, X_test, Y_test, threshold, modelName)
 
     print('\n\nThreshold', threshold)
 

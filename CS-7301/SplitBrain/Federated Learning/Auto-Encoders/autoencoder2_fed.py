@@ -230,7 +230,7 @@ def main():
     # save the auto encoder
     global_model.save("model.h5")
 
-    fu.driver(global_model)
+    fu.driver(global_model, 'Federated')
 
 
 if __name__ == '__main__':
