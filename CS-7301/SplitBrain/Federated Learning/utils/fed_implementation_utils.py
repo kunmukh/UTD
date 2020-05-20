@@ -11,14 +11,17 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from PIL import Image
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from random import shuffle
+from sklearn.model_selection import train_test_split
 
 # Number of samples to show
-SAMPLES = 100
+SAMPLES = 500
 
 
 # helper function to get the data
 def getData():
-    # prepare normal dataset (Mnist)
+    '''# prepare normal dataset (Mnist)
     (x_train, _), (x_test, _) = mnist.load_data()
     x_train = x_train / 255.  # normalize into [0,1]
     x_test = x_test / 255.
@@ -30,7 +33,28 @@ def getData():
     # # reshape input data according to the model's input tensor
     x_train = x_train.reshape(-1, 28 * 28)
     x_test = x_test.reshape(-1, 28 * 28)
-    x_abnormal = x_abnormal.reshape(-1, 28 * 28)
+    x_abnormal = x_abnormal.reshape(-1, 28 * 28)'''
+
+    x_train_df = pd.read_csv('../../ProvDetector/kunal/benignK.csv') # ../ProvDetector/kunal/benignOutRemK.csv
+    x_test_df = pd.read_csv('../../ProvDetector/kunal/benignTestK.csv')
+    x_abnormal_df = pd.read_csv('../../ProvDetector/kunal/anaK.csv')
+
+    x_train_df = x_train_df.drop(x_train_df.columns[0], axis=1)
+    x_test_df = x_test_df.drop(x_test_df.columns[0], axis=1)
+    x_abnormal_df = x_abnormal_df.drop(x_abnormal_df.columns[0], axis=1)
+
+    x_train = x_train_df.values
+    x_test = x_test_df.values
+    x_abnormal = x_abnormal_df.values
+
+    x = np.vstack((x_train, x_test))
+
+    x = MinMaxScaler().fit_transform(x)
+
+    x_train, x_test = train_test_split(x, test_size=0.25)
+    shuffle(x_abnormal)
+
+    x_abnormal = MinMaxScaler().fit_transform(x_abnormal)
 
     return x_train, x_test, x_abnormal
 
@@ -93,7 +117,6 @@ def plotLoss(autoencoder, X_test, y_test, threshold, modelName):
 
     print('\nLoss Test **************************')
     print('threshold', threshold)
-    threshold += .0005
     y_pred = [1 if e > threshold else 0 for e in error_df.reconstruction_error.values]
     conf_matrix = confusion_matrix(error_df.true_class, y_pred)
     tn, fp, fn, tp = conf_matrix.ravel()
@@ -133,7 +156,8 @@ def getThreasholdTrain(autoencoder, X, y_test, modelName):
     predictions = autoencoder.predict(X)
     mse = np.mean(np.power(X - predictions, 2), axis=1)
 
-    threshold = np.quantile(mse, 0.9900)
+    PERCENTILE = 0.8000
+    threshold = np.quantile(mse, PERCENTILE)
 
     # showImage(X_test.values[101], predictions[101])
     error_df = pd.DataFrame(list(zip(list(mse.values.reshape(1, SAMPLES)[0]),
@@ -239,7 +263,7 @@ def driver(model, modelName):
     # showloss(x_test[:SAMPLES], x_abnormal[:SAMPLES], model)
 
     # generate the test sample( 100 good image + 100 abnormal image)
-    X_test = pd.DataFrame(np.concatenate([x_test[:SAMPLES], x_abnormal[:SAMPLES]], axis=0))
+    X_test = pd.DataFrame(np.concatenate([x_test[:SAMPLES], x_abnormal[0:SAMPLES]], axis=0))
     Y_test = pd.DataFrame([0 for _ in range(SAMPLES)] + [1 for _ in range(SAMPLES)])
 
     # uncomment to shuffle the data
@@ -249,6 +273,20 @@ def driver(model, modelName):
     data = pd.DataFrame(data)
     X_test = data.iloc[:, :-1]
     Y_test = data.iloc[:, -1]'''
+
+    # plot the mse of X and threshold for the data
+    plotLoss(model, X_test, Y_test, threshold, modelName)
+
+    # generate the test sample( 100 good image + 100 abnormal image)
+    X_test = pd.DataFrame(np.concatenate([x_test[:SAMPLES], x_test[SAMPLES:2*SAMPLES]], axis=0))
+    Y_test = pd.DataFrame([0 for _ in range(SAMPLES)] + [0 for _ in range(SAMPLES)])
+
+    # plot the mse of X and threshold for the data
+    plotLoss(model, X_test, Y_test, threshold, modelName)
+
+    # generate the test sample( 100 good image + 100 abnormal image)
+    X_test = pd.DataFrame(np.concatenate([x_abnormal[:SAMPLES], x_abnormal[SAMPLES:2 * SAMPLES]], axis=0))
+    Y_test = pd.DataFrame([1 for _ in range(SAMPLES)] + [1 for _ in range(SAMPLES)])
 
     # plot the mse of X and threshold for the data
     plotLoss(model, X_test, Y_test, threshold, modelName)
