@@ -58,7 +58,10 @@ def getAutoencoderModel(X_train, x_test):
 # the driver function
 def main():
 
-    X_train, x_test, x_abnormal = fu.getData()
+    X_train, x_test, x_abnormal = fu.getData(False,
+                                                '../ProvDetector/kunal/benignK.csv',
+                                                '../ProvDetector/kunal/benignTestK.csv',
+                                                '../ProvDetector/kunal/anaK.csv')
 
     # build the autoencoder model
     model = getAutoencoderModel(X_train, x_test)
@@ -66,7 +69,7 @@ def main():
     # uncomment if you already have a trained model
     # model = load_model('model.h5')
 
-    fu.driver(model, 'Non-Federated')
+    fu.driver(model, 'Non-Federated', False)
 
 
 if __name__ == '__main__':

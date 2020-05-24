@@ -20,41 +20,41 @@ SAMPLES = 500
 
 
 # helper function to get the data
-def getData():
-    '''# prepare normal dataset (Mnist)
-    (x_train, _), (x_test, _) = mnist.load_data()
-    x_train = x_train / 255.  # normalize into [0,1]
-    x_test = x_test / 255.
+def getData(needMINST, fileNameTrain=None, fileNameTest=None, fileNameAbnormal=None):
+    if needMINST:
+        # prepare normal dataset (Mnist)
+        (x_train, _), (x_test, _) = mnist.load_data()
+        x_train = x_train / 255.  # normalize into [0,1]
+        x_test = x_test / 255.
 
-    # prapare abnormal dataset (Fashion Mnist)
-    (_, _), (x_abnormal, _) = fashion_mnist.load_data()
-    x_abnormal = x_abnormal / 255.
+        # prapare abnormal dataset (Fashion Mnist)
+        (_, _), (x_abnormal, _) = fashion_mnist.load_data()
+        x_abnormal = x_abnormal / 255.
 
-    # # reshape input data according to the model's input tensor
-    x_train = x_train.reshape(-1, 28 * 28)
-    x_test = x_test.reshape(-1, 28 * 28)
-    x_abnormal = x_abnormal.reshape(-1, 28 * 28)'''
+        # # reshape input data according to the model's input tensor
+        x_train = x_train.reshape(-1, 28 * 28)
+        x_test = x_test.reshape(-1, 28 * 28)
+        x_abnormal = x_abnormal.reshape(-1, 28 * 28)
+    else:
+        x_train_df = pd.read_csv(fileNameTrain)
+        x_test_df = pd.read_csv(fileNameTest)
+        x_abnormal_df = pd.read_csv(fileNameAbnormal)
 
-    x_train_df = pd.read_csv('../../ProvDetector/kunal/benignK.csv') # ../ProvDetector/kunal/benignOutRemK.csv
-    x_test_df = pd.read_csv('../../ProvDetector/kunal/benignTestK.csv')
-    x_abnormal_df = pd.read_csv('../../ProvDetector/kunal/anaK.csv')
+        x_train_df = x_train_df.drop(x_train_df.columns[0], axis=1)
+        x_test_df = x_test_df.drop(x_test_df.columns[0], axis=1)
+        x_abnormal_df = x_abnormal_df.drop(x_abnormal_df.columns[0], axis=1)
 
-    x_train_df = x_train_df.drop(x_train_df.columns[0], axis=1)
-    x_test_df = x_test_df.drop(x_test_df.columns[0], axis=1)
-    x_abnormal_df = x_abnormal_df.drop(x_abnormal_df.columns[0], axis=1)
+        x_train = x_train_df.values
+        x_test = x_test_df.values
+        x_abnormal = x_abnormal_df.values
 
-    x_train = x_train_df.values
-    x_test = x_test_df.values
-    x_abnormal = x_abnormal_df.values
+        x = np.vstack((x_train, x_test))
 
-    x = np.vstack((x_train, x_test))
+        x = MinMaxScaler().fit_transform(x)
+        x_abnormal = MinMaxScaler().fit_transform(x_abnormal)
 
-    x = MinMaxScaler().fit_transform(x)
-
-    x_train, x_test = train_test_split(x, test_size=0.25)
-    shuffle(x_abnormal)
-
-    x_abnormal = MinMaxScaler().fit_transform(x_abnormal)
+        x_train, x_test = train_test_split(x, test_size=0.25)
+        shuffle(x_abnormal)
 
     return x_train, x_test, x_abnormal
 
@@ -249,9 +249,21 @@ def getThreashold(autoencoder, X_test, y_test, want_accuracy, want_recall):
 
 
 # the driver function
-def driver(model, modelName):
+def driver(model, modelName, MINSTData, isFed=False):
 
-    X_train, x_test, x_abnormal = getData()
+    if MINSTData:
+        X_train, x_test, x_abnormal = getData(True)
+    else:
+        if isFed:
+            X_train, x_test, x_abnormal = getData(False,
+                                                '../../ProvDetector/kunal/benignK.csv',
+                                                '../../ProvDetector/kunal/benignTestK.csv',
+                                                '../../ProvDetector/kunal/anaK.csv')
+        else:
+            X_train, x_test, x_abnormal = getData(False,
+                                                  '../ProvDetector/kunal/benignK.csv',
+                                                  '../ProvDetector/kunal/benignTestK.csv',
+                                                  '../ProvDetector/kunal/anaK.csv')
 
     # get the 99th percentile of the train threshold
     threshold = getThreasholdTrain(model,

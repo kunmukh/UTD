@@ -157,7 +157,10 @@ def main():
     # apply our function
     image_list, label_list = load(image_paths, verbose=10000)'''
 
-    image_list, x_test, x_abnormal = fu.getData()
+    image_list, x_test, x_abnormal = fu.getData(False,
+                                                '../../ProvDetector/kunal/benignK.csv',
+                                                '../../ProvDetector/kunal/benignTestK.csv',
+                                                '../../ProvDetector/kunal/anaK.csv')
 
     # print(pd.DataFrame(label_list[0:10]))
 
@@ -233,7 +236,7 @@ def main():
     # save the auto encoder
     global_model.save("model.h5")
 
-    fu.driver(global_model, 'Federated')
+    fu.driver(global_model, 'Federated', False, True)
 
 
 if __name__ == '__main__':
