@@ -14,6 +14,8 @@ import pandas as pd
 
 from utils import fed_implementation_utils as fu
 
+import psutil
+
 
 # training of the autoencoder model
 # https://github.com/otenim/AnomalyDetectionUsingAutoencoder
@@ -57,7 +59,6 @@ def getAutoencoderModel(X_train, x_test):
 
 # the driver function
 def main():
-
     X_train, x_test, x_abnormal = fu.getData(False,
                                                 '../ProvDetector/kunal/benignK.csv',
                                                 '../ProvDetector/kunal/benignTestK.csv',
@@ -70,6 +71,12 @@ def main():
     # model = load_model('model.h5')
 
     fu.driver(model, 'Non-Federated', False)
+
+    print('\n\n')
+    # gives a single float value
+    print(psutil.cpu_percent())
+    # you can convert that object to a dictionary
+    print(dict(psutil.virtual_memory()._asdict()))
 
 
 if __name__ == '__main__':
