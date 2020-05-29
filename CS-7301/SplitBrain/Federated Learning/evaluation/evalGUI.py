@@ -26,7 +26,7 @@ ys1, ys2, ys3, ys4 = {}, {}, {}, {}
 
 PID = []
 PID_str = ""
-
+pl = {}
 
 # add the label and title
 def addInfoPlot():
@@ -45,6 +45,11 @@ def addInfoPlot():
     ax2.set_xlabel('sec')
     ax3.set_xlabel('sec')
     ax4.set_xlabel('sec')
+
+    ax1.legend([pl[PID[i]] for i in range(len(PID))], PID, loc="upper right")
+    ax2.legend([pl[PID[i]] for i in range(len(PID))], PID, loc="upper right")
+    ax3.legend([pl[PID[i]] for i in range(len(PID))], PID, loc="upper right")
+    ax4.legend([pl[PID[i]] for i in range(len(PID))], PID, loc="upper right")
 
     fig.tight_layout()
 
@@ -66,26 +71,31 @@ def saveData():
 # function to animate
 def animate(interval):
     global xs, ys1, ys2
-    try:
-        for pid in PID:
+    pidDone = 0
+    for pid in PID:
+        try:
             p = psutil.Process(pid)
-
             ys1[pid].append(p.cpu_percent(0.1) / psutil.cpu_count())
             ys2[pid].append(p.memory_info().rss)
-        xs.append(xs[-1] + 1)
 
-    except psutil.NoSuchProcess:
-        saveFig()
-        saveData()
-        exit()
+        except psutil.NoSuchProcess:
+            pidDone += 1
+            if len(PID) == pidDone:
+                print('Press Enter to save and exit')
+                input()
+
+                saveFig()
+                saveData()
+                exit()
+    xs.append(xs[-1] + 1)
 
     # slear the subplot
     ax1.clear()
     ax2.clear()
     # add the new subplot
     for pid in PID:
-        ax1.plot(xs, ys1[pid], label=PID_str)
-        ax2.plot(xs, ys2[pid], label=PID_str)
+        pl[pid], = ax1.plot(xs[:len(ys1[pid])], ys1[pid], label=PID_str)
+        ax2.plot(xs[:len(ys2[pid])], ys2[pid], label=PID_str)
 
     addInfoPlot()
 
@@ -105,11 +115,10 @@ def main():
         ys2.update({pid: [0.]})
         ys3.update({pid: [0.]})
         ys4.update({pid: [0.]})
-
-    print(ys1, ys2, ys3, ys4)
+        pl.update({pid: None})
 
     while True:
-        ani = animation.FuncAnimation(fig, animate, interval=1000)
+        ani = animation.FuncAnimation(fig, animate, interval=500)
         plt.show()
 
 
