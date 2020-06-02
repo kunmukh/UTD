@@ -5,8 +5,8 @@
 # Utility to measure
 # 1> CPU usage
 # 2> Virtual Memory usage
-# 3> Data Received
-# 4> Data Sent
+# 3> Data Receive- not added
+# 4> Data Sent- not added
 
 # import statement
 import matplotlib.pyplot as plt
@@ -15,6 +15,13 @@ from matplotlib import style
 import math
 import psutil
 import csv
+from collections import Counter
+from scapy.all import sniff
+from threading import Thread
+import time
+
+# IP port to monitor
+monitorIP = "192.168.1.127"
 
 # black background
 style.use('dark_background')
@@ -28,18 +35,23 @@ PID = []
 PID_str = ""
 pl = {}
 
+# Create a Packet Counter
+packet_counts_recv = Counter()
+packet_counts_send = Counter()
+
+
 # add the label and title
 def addInfoPlot():
     # create the sub plot
     ax1.set_title('CPU Usage')
     ax2.set_title('Virtual Memory Usage')
-    ax3.set_title('Data Received')
-    ax4.set_title('Data Sent')
+    ax3.set_title('Data Sent')
+    ax4.set_title('Data Received')
 
     ax1.set_ylabel('%')
     ax2.set_ylabel('bytes')
-    ax3.set_ylabel('test')
-    ax4.set_ylabel('test')
+    ax3.set_ylabel('# of packets')
+    ax4.set_ylabel('# of packets')
 
     ax1.set_xlabel('sec')
     ax2.set_xlabel('sec')
@@ -64,8 +76,8 @@ def saveData():
     with open('Data/'+PID_str+'.csv', "w") as f:
         fw = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for p in PID:
-            for cpu, mem in zip(ys1[p], ys2[p]):
-                fw.writerow([p, cpu, mem])
+            for cpu, mem, sent, recv in zip(ys1[p], ys2[p], ys3[p], ys4[p]):
+                fw.writerow([p, cpu, mem, sent, recv])
 
 
 # function to animate
@@ -78,6 +90,16 @@ def animate(interval):
             ys1[pid].append(p.cpu_percent(0.1) / psutil.cpu_count())
             ys2[pid].append(p.memory_info().rss)
 
+            total = 0
+            for key, count in packet_counts_send.items():
+                total += count
+            ys3[pid].append(total)
+
+            total = 0
+            for key, count in packet_counts_recv.items():
+                total += count
+            ys4[pid].append(total)
+
         except psutil.NoSuchProcess:
             pidDone += 1
             if len(PID) == pidDone:
@@ -86,24 +108,73 @@ def animate(interval):
 
                 saveFig()
                 saveData()
+                print('Saved')
                 exit()
-    xs.append(xs[-1] + 1)
+    xs.append(xs[-1] + .5)
 
-    # slear the subplot
+    # clear the subplot
     ax1.clear()
     ax2.clear()
+    ax3.clear()
+    ax4.clear()
     # add the new subplot
     for pid in PID:
         pl[pid], = ax1.plot(xs[:len(ys1[pid])], ys1[pid], label=PID_str)
         ax2.plot(xs[:len(ys2[pid])], ys2[pid], label=PID_str)
+        ax3.plot(xs[:len(ys3[pid])], ys3[pid], label=PID_str)
+        ax4.plot(xs[:len(ys4[pid])], ys4[pid], label=PID_str)
 
     addInfoPlot()
 
 
+# Define our Custom Action function
+def custom_action_recv(packet):
+    # Create tuple of Src/Dst in sorted order
+    try:
+        key = tuple(sorted([packet[0][1].src, packet[0][1].dst]))
+        packet_counts_recv.update([key])
+        # return f"Packet #{sum(packet_counts_recv.values())}: {packet[0][1].src} ==> {packet[0][1].dst}"
+        # testing
+        # print("\n".join(f"Recv {f'{key[0]} <--> {key[1]}'}: {count}" for key, count in packet_counts_recv.items()))
+    except AttributeError:
+        return f"Packet error"
+
+
+# Define our Custom Action function
+def custom_action_send(packet):
+    # Create tuple of Src/Dst in sorted order
+    try:
+        key = tuple(sorted([packet[0][1].src, packet[0][1].dst]))
+        packet_counts_send.update([key])
+        # return f"Packet #{sum(packet_counts_send.values())}: {packet[0][1].src} ==> {packet[0][1].dst}"
+        # testing
+        # print("\n".join(f"Send {f'{key[0]} <--> {key[1]}'}: {count}" for key, count in packet_counts_send.items()))
+    except AttributeError:
+        return f"Packet error"
+
+
+def packet_capture_send():
+    # Setup sniff, filtering for IP traffic
+    sniff(filter="src " + monitorIP, prn=custom_action_send)
+
+
+def packet_capture_recv():
+    # Setup sniff, filtering for IP traffic
+    sniff(filter="dst " + monitorIP, prn=custom_action_recv)
+
+
 # main driver function
 def main():
-
     global PID, PID_str, ys1, ys2, ys3, ys4
+
+    try:
+        s = Thread(target=packet_capture_send)
+        r = Thread(target=packet_capture_recv)
+
+        s.start()
+        r.start()
+    except:
+        print(f"Error: unable to start thread")
 
     print('Enter the process PID')
     PID_str = input()
@@ -123,4 +194,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Interrupted')
+        exit()
