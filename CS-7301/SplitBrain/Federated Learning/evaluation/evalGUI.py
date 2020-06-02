@@ -19,9 +19,11 @@ from collections import Counter
 from scapy.all import sniff
 from threading import Thread
 import time
+import sys
+import os
 
 # IP port to monitor
-monitorIP = "192.168.1.127"
+monitorIP = "127.0.0.1"
 
 # black background
 style.use('dark_background')
@@ -29,10 +31,11 @@ style.use('dark_background')
 fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1)
 
 xs = [0.]
-ys1, ys2, ys3, ys4 = {}, {}, {}, {}
+ys1, ys2 = {}, {}
+ys3, ys4 = [], []
 
 PID = []
-PID_str = ""
+PID_str = "00000"
 pl = {}
 
 # Create a Packet Counter
@@ -60,8 +63,8 @@ def addInfoPlot():
 
     ax1.legend([pl[PID[i]] for i in range(len(PID))], PID, loc="upper right")
     ax2.legend([pl[PID[i]] for i in range(len(PID))], PID, loc="upper right")
-    ax3.legend([pl[PID[i]] for i in range(len(PID))], PID, loc="upper right")
-    ax4.legend([pl[PID[i]] for i in range(len(PID))], PID, loc="upper right")
+    ax3.legend([pl[PID[i]] for i in range(len(PID))], monitorIP, loc="upper right")
+    ax4.legend([pl[PID[i]] for i in range(len(PID))], monitorIP, loc="upper right")
 
     fig.tight_layout()
 
@@ -76,7 +79,7 @@ def saveData():
     with open('Data/'+PID_str+'.csv', "w") as f:
         fw = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for p in PID:
-            for cpu, mem, sent, recv in zip(ys1[p], ys2[p], ys3[p], ys4[p]):
+            for cpu, mem, sent, recv in zip(ys1[p], ys2[p], ys3, ys4):
                 fw.writerow([p, cpu, mem, sent, recv])
 
 
@@ -90,27 +93,27 @@ def animate(interval):
             ys1[pid].append(p.cpu_percent(0.1) / psutil.cpu_count())
             ys2[pid].append(p.memory_info().rss)
 
-            total = 0
-            for key, count in packet_counts_send.items():
-                total += count
-            ys3[pid].append(total)
-
-            total = 0
-            for key, count in packet_counts_recv.items():
-                total += count
-            ys4[pid].append(total)
-
         except psutil.NoSuchProcess:
             pidDone += 1
             if len(PID) == pidDone:
-                print('Press Enter to save and exit')
-                input()
-
                 saveFig()
                 saveData()
                 print('Saved')
-                exit()
+                os._exit(0)
+                sys.exit()
+
+
     xs.append(xs[-1] + .5)
+
+    total = 0
+    for key, count in packet_counts_send.items():
+        total += count
+    ys3.append(total)
+
+    total = 0
+    for key, count in packet_counts_recv.items():
+        total += count
+    ys4.append(total)
 
     # clear the subplot
     ax1.clear()
@@ -120,9 +123,9 @@ def animate(interval):
     # add the new subplot
     for pid in PID:
         pl[pid], = ax1.plot(xs[:len(ys1[pid])], ys1[pid], label=PID_str)
-        ax2.plot(xs[:len(ys2[pid])], ys2[pid], label=PID_str)
-        ax3.plot(xs[:len(ys3[pid])], ys3[pid], label=PID_str)
-        ax4.plot(xs[:len(ys4[pid])], ys4[pid], label=PID_str)
+        ax2.plot(xs[:len(ys2[pid])], ys2[pid])
+    ax3.plot(xs[:len(ys3)], ys3)
+    ax4.plot(xs[:len(ys4)], ys4)
 
     addInfoPlot()
 
@@ -155,17 +158,24 @@ def custom_action_send(packet):
 
 def packet_capture_send():
     # Setup sniff, filtering for IP traffic
-    sniff(filter="src " + monitorIP, prn=custom_action_send)
+    sniff(filter="src " + monitorIP[0], prn=custom_action_send)
 
 
 def packet_capture_recv():
     # Setup sniff, filtering for IP traffic
-    sniff(filter="dst " + monitorIP, prn=custom_action_recv)
+    sniff(filter="dst " + monitorIP[0], prn=custom_action_recv)
 
 
 # main driver function
 def main():
-    global PID, PID_str, ys1, ys2, ys3, ys4
+    global PID, PID_str, ys1, ys2, ys3, ys4, monitorIP
+
+    print('Enter the process PID, IP')
+    PID_str = input()
+    PID, IP = PID_str.split(',')
+    PID = [int(PID)]
+
+    monitorIP = [IP]
 
     try:
         s = Thread(target=packet_capture_send)
@@ -176,16 +186,9 @@ def main():
     except:
         print(f"Error: unable to start thread")
 
-    print('Enter the process PID')
-    PID_str = input()
-    PID = PID_str.split(',')
-    PID = [int(i) for i in PID]
-
     for pid in PID:
         ys1.update({pid: [0.]})
         ys2.update({pid: [0.]})
-        ys3.update({pid: [0.]})
-        ys4.update({pid: [0.]})
         pl.update({pid: None})
 
     while True:
