@@ -1,0 +1,385 @@
+-- Insert data in PERSON TABLE
+INSERT INTO PERSON
+VALUES 
+('P001','09-29-1997' ,'Kunal', '', 'Mukherjee', 'Male'),
+('P002','06-21-1950' ,'Suraj', 'N', 'Kothawade', 'Male'),
+('P003','01-26-1950' ,'Diksha', 'O', 'GodBole', 'Female'),
+('P004','08-15-1947' ,'Erin', 'S', 'Leinenbach', 'Female'),
+('P005','07-23-1990' ,'Smita', '', 'Ghosh', 'Female'),
+('P007','01-01-1990' ,'James', 'F', 'Bond', 'Male'),
+('P010','08-09-1997' ,'Minal', 'w', 'Bonde', 'Female'),
+('P011','02-17-1950' ,'Abdul', 'K', 'Kalam', 'Male'),
+('P012','04-16-1950' ,'Narendra', 'D', 'Modi', 'Male');
+GO
+
+-- Insert data in PHONE_NUMBER TABLE
+INSERT INTO PHONE_NUMBER
+VALUES 
+('P001', '8125503890'),
+('P002', '8123546797'),
+('P003', '8820893598'),
+('P004', '2345046004'),
+('P005', '7564990234'),
+('P007', '9034758032'),
+('P010', '2345043504'),
+('P011', '8947789092'),
+('P012', '3749823034');
+GO
+
+-- Insert data in PRSN_ADDRESS TABLE
+INSERT INTO PRSN_ADDRESS
+VALUES 
+('P001', 'TX', 'IRVING', 'COWBOYS PKWY'),
+('P002', 'IL', 'EVANSVILLE', 'BAKER STREET'),
+('P003', 'IN', 'PEORIA', 'STRIP RD'),
+('P004', 'IL', 'CHICAGO', 'HWY 500'),
+('P005', 'NM', 'DALLAS', 'JESSOR ROAD'),
+('P007', 'MO', 'KOLKATA', 'SALT LAKE'),
+('P010', 'NM', 'CHICAGO', 'MARY ROAD'),
+('P011', 'IL', 'KOLKATA', 'LAMB 500'),
+('P012', 'MO', 'DALLAS', 'SALT LAKE');
+GO
+
+-- Insert data in SILVER_CUST TABLE
+INSERT INTO SILVER_CUST
+VALUES 
+('P001', '10-25-2015'),
+('P002', '10-22-2023'),
+('P003', '06-29-2020');
+GO
+UPDATE SILVER_CUST
+SET DateOfJoin = '09-04-2010'
+WHERE SILVER_CUST.SilverPID='P003'
+GO
+
+-- Insert data in ONLINE_CUST TABLE
+INSERT INTO ONLINE_CUST
+VALUES 
+('P001', 'KXM6@UTDS.EDU'),
+('P002', 'KU@ZAPAK.COM');
+GO
+
+-- Insert data in STORE TABLE
+INSERT INTO STORE
+VALUES 
+('123', 'BIGBAZAR', 'IL', 'EVANVILLE', 'BAKER ST'),
+('124', 'KHOLS', 'TX', 'CHICAGO', 'GULL ST'),
+('125', 'WALMART', 'AZ', 'DALLAS', 'FILL ST'),
+('126', 'KROGER', 'MI', 'PEORIA', 'TABLE ST'),
+('127', 'TARGET', 'FL', 'NOVI', 'MOSS ST');
+GO
+
+-- Insert data in STORE_CONTACT TABLE
+INSERT INTO STORE_CONTACT
+VALUES 
+('123', '8125503890'),
+('124', '8123546797'),
+('125', '8820893598'),
+('126', '2345046004'),
+('127', '7564990234');
+GO
+
+-- Insert data in SALE TABLE
+INSERT INTO SALE
+VALUES 
+('10', '123', '24', 'FOOD', '09-29-2020'),
+('11', '124', '24', 'FOOD', '09-12-2020'),
+('12', '125', '25', 'TV', '09-06-2020'),
+('13', '125', '26', 'XBOX', '02-29-2020');
+GO
+
+-- Insert data in VOUCHER TABLE
+INSERT INTO VOUCHER
+VALUES 
+('1009', '125'),
+('1010', '125'),
+('1011', '126'),
+('1012', '127'),
+('1013', '125'), 
+('1014', '127'),
+('1015', '125'),
+('1016', '125'), 
+('1017', '127'),
+('1018', '125'),
+('1019', '125'), 
+('1020', '127'),
+('1021', '127');
+GO
+
+-- Insert data in PROMOTION TABLE
+INSERT INTO PROMOTION
+VALUES 
+('510','1009', '125', 1, '10% OFF'),
+('511','1010', '125', 1, '20% OFF'),
+('512','1012', '127', 1, '30% OFF');
+GO
+
+-- Insert data in GOLD_CUST TABLE
+INSERT INTO GOLD_CUST
+VALUES 
+('P001','123', '9002', 'FUEL50OFF', '09-06-2010', '05-06-2020'),
+('P003','125', '9003', 'PIZZA10OFF', '01-06-2010', '03-04-2020'),
+('P007','123', '9000', 'FUEL50OFF', '09-06-2010', '05-06-2020'),
+('P005','125', '9001', 'PIZZA10OFF', '01-06-2010', '03-04-2020'),
+('P011','127', '9004', 'WATCH10OFF', '05-06-2015', '05-08-2020');
+GO
+UPDATE GOLD_CUST
+SET CardIssueDate = '06-10-2010'
+WHERE GoldPID = 'P011'
+GO
+
+-- Insert data in NON_ONLINE_CUST TABLE
+INSERT INTO NON_ONLINE_CUST
+VALUES 
+('P001', 'P001', '123', '9002')
+GO
+INSERT INTO NON_ONLINE_CUST ([NonOnlinePID])
+VALUES 
+('P002')
+GO
+
+-- Insert data in EMPLOYEE TABLE
+INSERT INTO EMPLOYEE
+VALUES 
+('P011','06-07-2010' , 'Manager', 'P011','127', '9004')
+GO
+INSERT INTO EMPLOYEE ([EmployeePID],[CurrStartDate],[CurrDesignation])
+VALUES
+('P010','09-09-2015' , 'Cashier'),
+('P012','08-16-2016' ,'FloorStaff')
+GO
+UPDATE EMPLOYEE
+SET CurrStartDate = '03-11-2019'
+WHERE EmployeePID = 'P010'
+GO
+
+-- Insert data in PAY TABLE
+INSERT INTO PAY
+VALUES 
+('P010',15,'06-07-2010'),
+('P010',02,'06-08-2010'),
+('P010',12,'06-09-2010'),
+('P011',34,'07-10-2010'),
+('P011',23,'07-09-2010'),
+('P011',12,'07-08-2010'),
+('P012',11,'06-12-2010'),
+('P012',12,'06-13-2010'),
+('P012',02,'06-14-2010'),
+('P010',12,'04-11-2010'),
+('P010',34,'04-12-2010'),
+('P010',23,'04-13-2010'),
+('P010',12,'04-14-2010'),
+('P010',11,'04-15-2010'),
+('P010',12,'04-16-2010'),
+('P010',02,'04-17-2010'),
+('P010',12,'04-11-2020'),
+('P010',34,'04-12-2020'),
+('P010',23,'04-13-2020'),
+('P010',12,'04-14-2020'),
+('P010',11,'04-15-2020'),
+('P010',12,'04-16-2020'),
+('P010',02,'04-17-2020');
+GO
+
+-- Insert data in PAST_DESIGNATION TABLE
+INSERT INTO PAST_DESIGNATION
+VALUES 
+('P010','07-07-2006','Cashier'),
+('P010','01-07-2005','FloorStaff'),
+('P011','02-03-2009','FloorStaff');
+GO
+
+-- Insert data in CASHIER TABLE
+INSERT INTO CASHIER
+VALUES 
+('P010')
+GO
+
+-- Insert data in MANAGER TABLE
+INSERT INTO MANAGER
+VALUES 
+('P011')
+GO
+
+-- Insert data in FLOOR_STAFF TABLE
+INSERT INTO FLOOR_STAFF
+VALUES 
+('P012')
+GO
+
+-- Insert data in AISLE TABLE
+INSERT INTO AISLE
+VALUES 
+('3800'),
+('3801'),
+('3802'),
+('3803'),
+('3804')
+GO
+
+-- Insert data in AISLE_INFO TABLE
+INSERT INTO AISLE_INFO
+VALUES 
+('3800',1,1),
+('3800',1,2),
+('3801',1,1),
+('3801',1,2),
+('3801',1,3)
+GO
+
+-- Insert data in SUPPLIER TABLE
+INSERT INTO SUPPLIER
+VALUES 
+('41','VIMAL','KOLKATA', '5647821287'),
+('42','CAPAK','DERJELING','9038592480'),
+('43','DELL','SEOUL', '0192783409'),
+('44','HP','MUMBAI', '9082349865'),
+('45','BP','DHARAVI', '2359875467')
+GO
+
+-- Insert data in PRODUCT TABLE
+INSERT INTO PRODUCT
+VALUES 
+('451','12','FOOD', 'YES',  '41'),
+('452','34','GAS','NO','44'),
+('453','86','FOOD', 'YES','43'),
+('454','46','GAS', 'YES','44'),
+('455','45','MOVIE','NO' ,'42'),
+('456','0','FOOD', 'NO',  '41');
+GO
+
+-- Insert data in PERI_PRODUCT TABLE
+INSERT INTO PERI_PRODUCT
+VALUES 
+('451', '02-27-2020'),
+('452', '03-17-2020'),
+('453','05-27-2026')
+GO
+
+-- Insert data in NON_PERI_PRODUCT TABLE
+INSERT INTO NON_PERI_PRODUCT
+VALUES 
+('454'),
+('455')
+GO
+
+-- Insert data in SUPPLY_DATE TABLE
+INSERT INTO SUPPLY_DATE
+VALUES
+('452', '44', '02-2-2020'),
+('452', '44', '04-15-2020'), 
+('452', '44', '08-15-2019'),
+('455', '44', '03-24-2020'), 
+('455', '44', '03-25-2020'),
+('455', '44', '03-26-2020'),
+('453', '44', '03-27-2020'), 
+('453', '42', '03-28-2020'),
+('453', '42', '03-29-2020'),
+('451', '42', '03-30-2020'), 
+('451', '42', '04-01-2020'),
+('454', '41', '04-01-2020');
+
+-- Insert data in ARRANGEMENT TABLE
+INSERT INTO ARRANGEMENT
+VALUES 
+('451', 'P012', '3800','03-15-2020'),
+('452', 'P012', '3802','04-17-2020'), 
+('453', 'P012', '3803', '03-07-2020'),
+('455', 'P012', '3803', '03-15-2021')
+GO
+
+-- Insert data in BUY TABLE
+INSERT INTO BUY
+VALUES 
+('P002', '1009', '125', '02-2-2020'),
+('P002', '1011', '126', '04-15-2020'), 
+('P002', '1012', '127', '08-15-2019'),
+('P002', '1013', '125', '03-24-2020'), 
+('P002', '1014', '127', '03-25-2020'),
+('P002', '1015', '125', '03-26-2020'),
+('P002', '1016', '125', '03-27-2020'), 
+('P002', '1017', '127', '03-28-2020'),
+('P002', '1018', '125', '03-29-2020'),
+('P002', '1019', '125', '03-30-2020'), 
+('P002', '1020', '127', '04-01-2020'),
+('P002', '1021', '127', '04-01-2020'),
+('P001', '1018', '125', '03-29-2020');
+GO
+
+-- Insert data in ASSIGNMENT TABLE
+INSERT INTO ASSIGNMENT
+VALUES 
+('P010','3800','123' ,'04-07-2020'),
+('P010','3802','123' ,'04-08-2020'),
+('P011','3800','123' ,'04-10-2020'),
+('P011','3802','123' ,'04-09-2020'),
+('P012','3803','124' ,'04-12-2020'),
+('P012','3804','124' ,'04-13-2020'),
+('P010','3800','126' ,'04-08-2020'),
+('P012','3800','126' ,'04-08-2020');
+GO
+
+-- Insert data in GIVEN_FREE TABLE
+INSERT INTO GIVEN_FREE
+VALUES 
+('P001','123', '9002', '1009', '125'),
+('P003','125', '9003', '1012', '127'),
+('P007','123', '9000', '1010', '125'),
+('P005','125', '9001', '1011', '126'),
+('P011','127', '9004', '1011', '126')
+GO
+
+-- Insert data in WORKS TABLE
+INSERT INTO WORKS
+VALUES 
+('P011', '123'),
+('P010', '123'),
+('P012', '125')
+GO
+
+-- Insert data in ONLINE_ORDER TABLE
+INSERT INTO ONLINE_ORDER
+VALUES
+('P001', '451', 1, 12, '06-07-2010', 'Master'),
+('P002', '452', 2, 435, '06-08-2010', 'Visa'),
+('P001', '452', 3, 67, '06-08-2010', 'Visa'),
+('P002', '453', 4, 234, '06-09-2010', 'Master'),
+('P001', '453', 5, 345, '06-09-2010', 'Master'),
+('P001', '454', 6, 234, '06-10-2010', 'Visa'),
+('P001', '454', 7, 100, '06-11-2010', 'Visa')
+GO
+
+-- Insert data in STORE_ORDER TABLE
+INSERT INTO STORE_ORDER
+VALUES
+('P010', '123', 451,'P001',1, 12, '02-07-2010', 'Master'),
+('P010', '123', 455,'P002',2, 435, '03-11-2010', 'Visa'),
+('P010', '125', 451,'P001',3, 67, '02-12-2010', 'Visa'),
+('P010', '126', 454,'P003',4, 234, '03-09-2010', 'Master'),
+('P010', '123', 454,'P001',5, 345, '04-10-2010', 'Master'),
+('P010', '126', 452,'P001',6, 234, '05-08-2010', 'Visa'),
+('P010', '125', 452,'P005',7, 100, '02-09-2010', 'Visa'),
+('P010', '123', 451,'P001',8, 12, '02-07-2019', 'Master'),
+('P010', '123', 455,'P002',9, 435, '03-11-2019', 'Visa'),
+('P010', '125', 451,'P001',10, 67, '02-12-2019', 'Visa'),
+('P010', '126', 454,'P003',11, 234, '03-09-2019', 'Master'),
+('P010', '123', 454,'P001',12, 345, '04-10-2019', 'Master'),
+('P010', '126', 452,'P001',13, 234, '05-08-2019', 'Visa'),
+('P010', '125', 452,'P005',14, 100, '02-09-2019', 'Visa'),
+('P010', '123', 451,'P001',15, 12, '02-07-2019', 'Master'),
+('P010', '123', 454,'P001',16, 345, '04-10-2019', 'Master'),
+('P010', '126', 452,'P001',17, 234, '05-08-2019', 'Visa'),
+('P010', '125', 451,'P001',18, 67, '02-12-2019', 'Visa'),
+('P010', '123', 454,'P001',19, 345, '04-10-2019', 'Master'),
+('P010', '126', 452,'P001',20, 234, '05-08-2019', 'Visa'),
+('P010', '123', 454,'P001',21, 345, '04-10-2019', 'Master'),
+('P010', '126', 452,'P001',22, 234, '05-08-2019', 'Visa'),
+('P010', '123', 454,'P001',23, 345, '04-10-2019', 'Master'),
+('P010', '126', 452,'P001',24, 234, '05-08-2019', 'Visa'),
+('P010', '123', 454,'P001',25, 345, '04-10-2019', 'Master'),
+('P010', '126', 452,'P001',26, 234, '05-08-2019', 'Visa'),
+('P010', '126', 451,'P004',27, 12, '08-08-2019', 'Visa'),
+('P010', '123', 452,'P004',28, 798, '04-15-2019', 'Master'),
+('P010', '126', 453,'P004',29, 443, '03-08-2019', 'Master'),
+('P010', '126', 452,'P004',30, 43, '01-08-2019', 'Master')
+GO
