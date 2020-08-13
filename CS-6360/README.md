@@ -7,9 +7,14 @@
 3. `docker load -i  <path to image tar file>`
 4. `docker run -it microsoft/mssql-db`
 
-## IP:PORT ; localhost, 1433
+## IP:PORT -> localhost, 1433
 
 Login: sa
 Password: Passw1rd
 
 DB name: Project3
+
+1. EER Diagram: CS-6360/Phase 2/EER Diagram.pdf
+2. Relational Diagram: CS-6360/Phase 3/Relational Diagram/Realtion Diagram.pdf
+3. Dependency Diagram: CS-6360/Phase 3/Dependency Diagram/Dependency Diagram.pdf
+4. SQL Scripts: CS-6360/Phase 3/SQL/
