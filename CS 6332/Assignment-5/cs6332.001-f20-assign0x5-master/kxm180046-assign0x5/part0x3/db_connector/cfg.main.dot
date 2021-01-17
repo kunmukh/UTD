@@ -1,0 +1,26 @@
+digraph "CFG for 'main' function" {
+	label="CFG for 'main' function";
+
+	Node0x555557281ec0 [shape=record,label="{entry:\l  %cmd = alloca [80 x i8], align 1\l  %user = alloca [16 x i8], align 1\l  %pass = alloca [16 x i8], align 1\l  call void bitcast (void (...)* @banner to void ()*)() #4\l  %call = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([17 x i8]*\l... @.str2, i32 0, i32 0)) #4\l  %arraydecay = getelementptr inbounds [16 x i8]* %user, i32 0, i32 0\l  %0 = load %struct._IO_FILE** @stdin, align 4\l  %call1 = call i8* @fgets(i8* %arraydecay, i32 16, %struct._IO_FILE* %0) #4\l  %cmp = icmp eq i8* %call1, null\l  br i1 %cmp, label %if.else, label %if.then\l|{<s0>T|<s1>F}}"];
+	Node0x555557281ec0:s0 -> Node0x555557281f80;
+	Node0x555557281ec0:s1 -> Node0x555557281f20;
+	Node0x555557281f20 [shape=record,label="{if.then:                                          \l  %call3 = call i32 @strlen(i8* %arraydecay) #5\l  %sub = add i32 %call3, -1\l  %arrayidx = getelementptr inbounds [16 x i8]* %user, i32 0, i32 %sub\l  store i8 0, i8* %arrayidx, align 1\l  %call5 = call i8* @getpass(i8* getelementptr inbounds ([10 x i8]* @.str4,\l... i32 0, i32 0)) #4\l  %cmp6 = icmp eq i8* %call5, null\l  br i1 %cmp6, label %if.else14, label %if.then7\l|{<s0>T|<s1>F}}"];
+	Node0x555557281f20:s0 -> Node0x555557282040;
+	Node0x555557281f20:s1 -> Node0x555557281fe0;
+	Node0x555557281f80 [shape=record,label="{if.else:                                          \l  %puts = call i32 @puts(i8* getelementptr inbounds ([24 x i8]* @str, i32 0,\l... i32 0))\l  call void @exit(i32 1) #6\l  unreachable\l}"];
+	Node0x555557281fe0 [shape=record,label="{if.then7:                                         \l  %arraydecay8 = getelementptr inbounds [16 x i8]* %pass, i32 0, i32 0\l  %call9 = call i32 @strlen(i8* %arraydecay8) #5\l  %sub10 = add i32 %call9, -1\l  %arrayidx11 = getelementptr inbounds [16 x i8]* %pass, i32 0, i32 %sub10\l  store i8 0, i8* %arrayidx11, align 1\l  %call13 = call i8* @strncpy(i8* %arraydecay8, i8* %call5, i32 16) #4\l  %call19 = call signext i8 @isValid(i8* %arraydecay, i8* %arraydecay8) #4\l  %tobool = icmp eq i8 %call19, 0\l  br i1 %tobool, label %if.then20, label %while.body.preheader\l|{<s0>T|<s1>F}}"];
+	Node0x555557281fe0:s0 -> Node0x5555572820a0;
+	Node0x555557281fe0:s1 -> Node0x555557282100;
+	Node0x555557282040 [shape=record,label="{if.else14:                                        \l  %puts2 = call i32 @puts(i8* getelementptr inbounds ([24 x i8]* @str1, i32 0,\l... i32 0))\l  call void @exit(i32 1) #6\l  unreachable\l}"];
+	Node0x5555572820a0 [shape=record,label="{if.then20:                                        \l  %1 = load %struct._IO_FILE** @stderr, align 4\l  %2 = call i32 @fwrite(i8* getelementptr inbounds ([42 x i8]* @.str5, i32 0,\l... i32 0), i32 41, i32 1, %struct._IO_FILE* %1) #7\l  %3 = load i8** getelementptr inbounds (%struct.cred_t* @cred_default, i32 0,\l... i32 0), align 4\l  %call23 = call i8* @strncpy(i8* %arraydecay, i8* %3, i32 16) #4\l  %4 = load i8** getelementptr inbounds (%struct.cred_t* @cred_default, i32 0,\l... i32 1), align 4\l  %call25 = call i8* @strncpy(i8* %arraydecay8, i8* %4, i32 16) #4\l  br label %while.body.preheader\l}"];
+	Node0x5555572820a0 -> Node0x555557282100;
+	Node0x555557282100 [shape=record,label="{while.body.preheader:                             \l  %call293 = call i8* @redactPass(i8* %arraydecay8)\l  %call304 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([50 x\l... i8]* @.str6, i32 0, i32 0), i8* %arraydecay, i8* getelementptr inbounds ([16\l... x i8]* @pass_buf, i32 0, i32 0)) #4\l  %call315 = call signext i8 bitcast (i8 (...)* @askYesOrNo to i8 ()*)() #4\l  %tobool326 = icmp eq i8 %call315, 0\l  br i1 %tobool326, label %if.then33, label %if.end35.lr.ph\l|{<s0>T|<s1>F}}"];
+	Node0x555557282100:s0 -> Node0x5555572821c0;
+	Node0x555557282100:s1 -> Node0x555557282160;
+	Node0x555557282160 [shape=record,label="{if.end35.lr.ph:                                   \l  %arraydecay36 = getelementptr inbounds [80 x i8]* %cmd, i32 0, i32 0\l  br label %if.end35\l}"];
+	Node0x555557282160 -> Node0x555557282220;
+	Node0x5555572821c0 [shape=record,label="{if.then33:                                        \l  %5 = load %struct._IO_FILE** @stderr, align 4\l  %6 = call i32 @fwrite(i8* getelementptr inbounds ([13 x i8]* @.str7, i32 0,\l... i32 0), i32 12, i32 1, %struct._IO_FILE* %5) #7\l  ret i32 0\l}"];
+	Node0x555557282220 [shape=record,label="{if.end35:                                         \l  %call39 = call i32 (i8*, i32, i8*, ...)* @snprintf(i8* %arraydecay36, i32\l... 80, i8* getelementptr inbounds ([31 x i8]* @.str8, i32 0, i32 0), i8*\l... %arraydecay8, i8* getelementptr inbounds ([14 x i8]* @.str9, i32 0, i32 0),\l... i8* %arraydecay) #4\l  %call41 = call i32 @system(i8* %arraydecay36) #4\l  %call29 = call i8* @redactPass(i8* %arraydecay8)\l  %call30 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([50 x\l... i8]* @.str6, i32 0, i32 0), i8* %arraydecay, i8* getelementptr inbounds ([16\l... x i8]* @pass_buf, i32 0, i32 0)) #4\l  %call31 = call signext i8 bitcast (i8 (...)* @askYesOrNo to i8 ()*)() #4\l  %tobool32 = icmp eq i8 %call31, 0\l  br i1 %tobool32, label %if.then33, label %if.end35\l|{<s0>T|<s1>F}}"];
+	Node0x555557282220:s0 -> Node0x5555572821c0;
+	Node0x555557282220:s1 -> Node0x555557282220;
+}

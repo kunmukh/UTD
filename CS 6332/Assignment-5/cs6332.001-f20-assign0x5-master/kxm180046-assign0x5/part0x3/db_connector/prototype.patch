@@ -1,0 +1,19 @@
+8a9,10
+> @xor_buff = common global [80 x i8] zeroinitializer, align 1
+> 
+10c12,13
+< @.str1 = private unnamed_addr constant [15 x i8] c"mysecretpasswd\00", align 1
+---
+> ; @.str1 = private unnamed_addr constant [15 x i8] c"mysecretpasswd\00", align 1
+> @.str1 = private unnamed_addr constant [15 x i8]  c"\6D\79\73\65\63\72\65\74\70\61\73\73\77\64\00", align 1
+23a27,28
+> 
+> 
+145a151,154
+>   ; %call25 = call i8* @strncpy(i8* %arraydecay24, i8* %6, i32 16) #5
+> 
+>   %a.2 = getelementptr inbounds [80 x i8]* @xor_buff, i32 0, i32 0
+>   %my.call = call i32 @xorCipher(i8* %a.2, i8* %6)
+194a204,205
+> 
+> declare i32 @xorCipher(i8*, i8*) #2

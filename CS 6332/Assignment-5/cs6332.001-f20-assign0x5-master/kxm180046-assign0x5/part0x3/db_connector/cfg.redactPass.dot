@@ -1,0 +1,10 @@
+digraph "CFG for 'redactPass' function" {
+	label="CFG for 'redactPass' function";
+
+	Node0x555557271df0 [shape=record,label="{entry:\l  %call = tail call i32 @strlen(i8* %pass) #5\l  %call1 = tail call i8* @strncpy(i8* getelementptr inbounds ([16 x i8]*\l... @pass_buf, i32 0, i32 0), i8* %pass, i32 %call) #4\l  %sub = add nsw i32 %call, -2\l  %cmp5 = icmp sgt i32 %sub, 0\l  br i1 %cmp5, label %for.cond.for.end_crit_edge, label %for.end\l|{<s0>T|<s1>F}}"];
+	Node0x555557271df0:s0 -> Node0x555557271e50;
+	Node0x555557271df0:s1 -> Node0x555557271eb0;
+	Node0x555557271e50 [shape=record,label="{for.cond.for.end_crit_edge:                       \l  %0 = add i32 %call, -2\l  call void @llvm.memset.p0i8.i32(i8* getelementptr inbounds ([16 x i8]*\l... @pass_buf, i32 0, i32 1), i8 42, i32 %0, i32 1, i1 false)\l  br label %for.end\l}"];
+	Node0x555557271e50 -> Node0x555557271eb0;
+	Node0x555557271eb0 [shape=record,label="{for.end:                                          \l  ret i8* getelementptr inbounds ([16 x i8]* @pass_buf, i32 0, i32 0)\l}"];
+}
