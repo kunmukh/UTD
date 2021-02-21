@@ -1,0 +1,31 @@
+VBoxManage snapshot "dark1-2-32bit" take "dark1-2-32bit-3s" --pause
+VBoxManage controlvm "dark1-2-32bit" poweroff
+VBoxManage snapshot "dark1-2-32bit" restorecurrent
+
+VBoxManage snapshot "dark3-2-32bit" take "dark3-2-32bit-3s" --pause
+VBoxManage controlvm "dark3-2-32bit" poweroff
+VBoxManage snapshot "dark3-2-32bit" restorecurrent
+
+--------------------------------------------------------------------
+
+VBoxManage snapshot "dark1-2" take "dark1-2-8s" --pause
+VBoxManage controlvm "dark1-2" poweroff
+VBoxManage snapshot "dark1-2" restorecurrent
+
+VBoxManage snapshot "dark3-2" take "dark3-2-8s" --pause
+VBoxManage controlvm "dark3-2" poweroff
+VBoxManage snapshot "dark3-2" restorecurrent
+
+VBoxManage snapshot "dark5-2" take "dark5-2-8s" --pause
+VBoxManage controlvm "dark5-2" poweroff
+VBoxManage snapshot "dark5-2" restorecurrent
+
+VBoxManage snapshot "dark7-2" take "dark7-2-8s" --pause
+VBoxManage controlvm "dark7-2" poweroff
+VBoxManage snapshot "dark7-2" restorecurrent
+
+
+
+
+
+
